@@ -1,39 +1,3 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>CertGen</title>
-<meta name="theme-color" content="#2d3a28"/>
-<link rel="manifest" href="/manifest.json">
-<link rel="apple-touch-icon" href="/icon.svg">
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600&family=Pinyon+Script&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:system-ui,sans-serif;background:#f5f5f0;min-height:100vh;}
-#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#2d3a28 0%,#4a5e42 100%);}
-.login-box{background:#fff;border-radius:16px;padding:40px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
-.login-logo{text-align:center;font-size:48px;margin-bottom:8px;}
-.login-title{text-align:center;font-size:22px;font-weight:700;color:#2d3a28;margin-bottom:4px;}
-.login-sub{text-align:center;font-size:13px;color:#888;margin-bottom:28px;}
-.login-input{width:100%;padding:14px;border:2px solid #eee;border-radius:10px;font-size:16px;font-family:monospace;letter-spacing:3px;text-transform:uppercase;outline:none;text-align:center;transition:border .2s;}
-.login-input:focus{border-color:#5a6e52;}
-.login-btn{width:100%;padding:14px;background:#5a6e52;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:14px;}
-.login-btn:disabled{background:#aaa;cursor:not-allowed;}
-.login-err{text-align:center;color:#c0392b;font-size:13px;margin-top:10px;min-height:18px;}
-#app-screen{display:none;}
-#app{display:flex;min-height:100vh;}
-.sidebar{width:210px;background:#2d3a28;color:#fff;padding:16px 10px;display:flex;flex-direction:column;gap:3px;flex-shrink:0;}
-.sidebar-logo{font-weight:bold;font-size:14px;margin-bottom:16px;padding-left:6px;display:flex;align-items:center;gap:8px;}
-.nav-btn{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;background:transparent;border:none;color:#fff;cursor:pointer;font-size:12.5px;width:100%;text-align:left;}
-.nav-btn:hover{background:rgba(255,255,255,.1);}
-.nav-btn.active{background:#5a6e52;}
-.main{flex:1;padding:24px;overflow-y:auto;min-width:0;background:#f5f5f0;}
-.topbar{display:none;background:#2d3a28;color:#fff;padding:12px 16px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
-.topbar button{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;}
-.bottomnav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e0e0e0;z-index:50;overflow-x:auto;white-space:nowrap;}
-.bnav-btn{display:inline-flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:#999;padding:8px 8px 10px;cursor:pointer;font-size:8px;min-width:50px;}
 .bnav-btn.active{color:#5a6e52;font-weight:700;}
 .card{background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:14px;}
 label.lbl{font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px;}
