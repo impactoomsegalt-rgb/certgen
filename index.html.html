@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CertGen</title>
+<meta name="theme-color" content="#2d3a28"/>
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon.svg">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600&family=Pinyon+Script&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,sans-serif;background:#f5f5f0;min-height:100vh;}
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#2d3a28 0%,#4a5e42 100%);}
+.login-box{background:#fff;border-radius:16px;padding:40px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.login-logo{text-align:center;font-size:48px;margin-bottom:8px;}
+.login-title{text-align:center;font-size:22px;font-weight:700;color:#2d3a28;margin-bottom:4px;}
+.login-sub{text-align:center;font-size:13px;color:#888;margin-bottom:28px;}
+.login-input{width:100%;padding:14px;border:2px solid #eee;border-radius:10px;font-size:16px;font-family:monospace;letter-spacing:3px;text-transform:uppercase;outline:none;text-align:center;transition:border .2s;}
+.login-input:focus{border-color:#5a6e52;}
+.login-btn{width:100%;padding:14px;background:#5a6e52;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:14px;}
+.login-btn:disabled{background:#aaa;cursor:not-allowed;}
+.login-err{text-align:center;color:#c0392b;font-size:13px;margin-top:10px;min-height:18px;}
+#app-screen{display:none;}
+#app{display:flex;min-height:100vh;}
+.sidebar{width:210px;background:#2d3a28;color:#fff;padding:16px 10px;display:flex;flex-direction:column;gap:3px;flex-shrink:0;}
+.sidebar-logo{font-weight:bold;font-size:14px;margin-bottom:16px;padding-left:6px;display:flex;align-items:center;gap:8px;}
+.nav-btn{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;background:transparent;border:none;color:#fff;cursor:pointer;font-size:12.5px;width:100%;text-align:left;}
+.nav-btn:hover{background:rgba(255,255,255,.1);}
+.nav-btn.active{background:#5a6e52;}
+.main{flex:1;padding:24px;overflow-y:auto;min-width:0;background:#f5f5f0;}
+.topbar{display:none;background:#2d3a28;color:#fff;padding:12px 16px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.topbar button{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;}
+.bottomnav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e0e0e0;z-index:50;overflow-x:auto;white-space:nowrap;}
+.bnav-btn{display:inline-flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:#999;padding:8px 8px 10px;cursor:pointer;font-size:8px;min-width:50px;}
+.bnav-btn.active{color:#5a6e52;font-weight:700;}
+.card{background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:14px;}
+label.lbl{font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px;}
+input.inp,select.sel,textarea.ta{width:100%;padding:10px;border:1px solid #ddd;border-radius:7px;font-size:14px;font-family:inherit;outline:none;background:#fff;}
+.btn{padding:10px 15px;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
+.btn-p{background:#5a6e52;color:#fff;}
+.btn-s{background:#eee;color:#333;}
+.btn-d{background:#fff0f0;color:#c0392b;}
+.btn-sm{padding:6px 10px;font-size:12px;}
+.flex{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+h1{font-size:21px;margin-bottom:14px;}
+h2{font-size:15px;margin-bottom:10px;}
+.toast{position:fixed;top:18px;right:18px;background:#2d3a28;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.2);display:none;}
+.row-sb{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+.sync-bar{background:#2d3a28;color:#fff;font-size:11px;padding:4px 16px;text-align:right;opacity:.7;}
+@media(max-width:700px){
+  .sidebar{display:none!important;}
+  .topbar{display:flex!important;}
+  .bottomnav{display:block!important;}
+  .main{padding:14px;padding-bottom:72px;}
+  .g2,.g3,.g4{grid-template-columns:1fr;}
+  h1{font-size:18px;}
+  .sidebar.mob-open{display:flex!important;position:fixed;top:0;left:0;height:100vh;z-index:100;width:220px;overflow-y:auto;}
+}
+.cp{width:1122px;height:794px;background:#fdfdf8;position:relative;padding:38px;overflow:hidden;font-family:'EB Garamond',Georgia,serif;}
+.cbo{border:2.5px solid var(--cor);height:100%;padding:7px;}
+.cbi{border:1px solid var(--cor);height:100%;padding:28px 56px;position:relative;display:flex;flex-direction:column;}
+.cbi2{padding:40px 70px;display:block;}
+.cc{position:absolute;width:42px;height:42px;border:2.5px solid var(--cor);opacity:.45;}
+.cc.tl{top:-2.5px;left:-2.5px;border-right:none;border-bottom:none;}
+.cc.tr{top:-2.5px;right:-2.5px;border-left:none;border-bottom:none;}
+.cc.bl{bottom:-2.5px;left:-2.5px;border-right:none;border-top:none;}
+.cc.br{bottom:-2.5px;right:-2.5px;border-left:none;border-top:none;}
+@page{size:A4 landscape;margin:0;}
+@media print{html,body{background:#fff!important;}.cp{width:297mm!important;height:210mm!important;padding:10mm!important;box-shadow:none!important;}}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">📜</div>
+    <div class="login-title">CertGen</div>
+    <div class="login-sub">Sistema de Certificados NR</div>
+    <input class="login-input" id="lic-input" type="text" placeholder="XXXX-XXXX-XXXX" maxlength="30" autocomplete="off" onkeydown="if(event.key==='Enter')AUTH.entrar()">
+    <button class="login-btn" id="lic-btn" onclick="AUTH.entrar()">Entrar</button>
+    <div class="login-err" id="lic-err"></div>
+  </div>
+</div>
+
+<div id="app-screen">
+  <div class="sync-bar" id="sync-bar">✓ Sincronizado</div>
+  <div class="topbar" id="topbar">
+    <div style="font-weight:bold;font-size:15px">📜 CertGen</div>
+    <button onclick="CG.toggleMenu()">☰</button>
+  </div>
+  <div id="app">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-logo">📜 <span id="sb-nome">CertGen</span></div>
+      <div id="nav-list"></div>
+      <div style="margin-top:auto;padding-left:6px">
+        <div style="font-size:10px;opacity:.5;margin-bottom:6px" id="lic-info"></div>
+        <button class="nav-btn" onclick="AUTH.sair()" style="color:#ffaaaa;font-size:12px">🚪 Sair</button>
+      </div>
+    </nav>
+    <main class="main" id="main"></main>
+  </div>
+  <nav class="bottomnav" id="bottomnav"></nav>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+// ── CONFIG ──────────────────────────────────────
+const SB_URL='https://uzhfclcefkotchigqepv.supabase.co';
+const SB_KEY='sb_publishable_VTj8vKM_rd4v_foClXKbgg_dOp55-56';
+const VERSAO='2.2.0';
+
+async function sbFetch(path,opts){
+  opts=opts||{};
+  const res=await fetch(SB_URL+'/rest/v1/'+path,{
+    ...opts,
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':opts.prefer||'',...(opts.headers||{})}
+  });
+  if(!res.ok){const t=await res.text();throw new Error(t);}
+  const txt=await res.text();
+  return txt?JSON.parse(txt):null;
+}
+
+// ── UTILITÁRIOS ──────────────────────────────────
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+var MESES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+function fmtExt(d){if(!d)return'';var p=d.split('-');return p[2]+' de '+MESES[parseInt(p[1],10)-1]+' de '+p[0];}
+function fmtCur(d){if(!d)return'';var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+function calcVenc(d,a){if(!d)return'';var n=parseInt(a,10);if(!n)return'Sem validade';var p=d.split('-');return p[2]+'.'+p[1]+'.'+(parseInt(p[0],10)+n);}
+function labelVal(a){var n=parseInt(a,10);if(!n)return'validade indeterminada';return(n<10?'0':'')+n+' ANO'+(n>1?'S':'');}
+function cvtD(v){if(!v)return'';v=String(v).trim();if(/^\d{4}-\d{2}-\d{2}/.test(v))return v.slice(0,10);var m=v.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);if(m){var d=m[1],mo=m[2],y=m[3];if(y.length===2)y='20'+y;return y+'-'+mo.padStart(2,'0')+'-'+d.padStart(2,'0');}return'';}
+function R$(v){return(parseFloat(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function statusVal(d,a){if(!d||!parseInt(a,10))return'indeterminado';var vd=new Date(d);vd.setFullYear(vd.getFullYear()+parseInt(a,10));var diff=(vd-new Date())/86400000;return diff<0?'vencido':diff<60?'vencendo':'valido';}
+function gerarId(curso,seq,ano){var p=(curso&&curso.norma?curso.norma:'CERT').replace(/[^A-Za-z0-9]/g,'').toUpperCase();return p+'-'+ano+'-'+String(seq).padStart(6,'0');}
+function gerarCodVerif(certId){
+  if(!certId)return'------';
+  var h=0,s=certId+'|CG26';
+  for(var i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}
+  var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',r='',n=Math.abs(h);
+  for(var j=0;j<6;j++){r+=chars[n%chars.length];n=Math.floor(n/chars.length)||Math.abs(h)+j+1;}
+  return r.slice(0,6);
+}
+function gerarQR(txt,sz){
+  return new Promise(function(res){
+    try{
+      var d=document.createElement('div');
+      d.style.cssText='position:fixed;left:-9999px;top:-9999px;';
+      document.body.appendChild(d);
+      new QRCode(d,{text:txt,width:sz,height:sz,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});
+      setTimeout(function(){
+        var el=d.querySelector('img')||d.querySelector('canvas');
+        var url=el?(el.tagName==='IMG'?el.src:(el.toDataURL?el.toDataURL():'')):'';
+        document.body.removeChild(d);res(url);
+      },250);
+    }catch(e){res('');}
+  });
+}
+function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(function(){el.style.display='none';},2800);}
+function T(arr){return arr.map(function(texto,i){return{id:'t'+(i+1),texto:texto};});}
+var parseMoeda=function(v){return parseFloat(String(v||'').replace(',','.'))||0;};
+  if(!inst)return{vt:0,vd:0,total:0,horas:0};
+  var h=0;
+  if(reg.horaInicio&&reg.horaFim){var p1=reg.horaInicio.split(':'),p2=reg.horaFim.split(':');var m=(parseInt(p2[0],10)*60+parseInt(p2[1],10))-(parseInt(p1[0],10)*60+parseInt(p1[1],10));if(m<0)m+=1440;h=m/60;}
+  var vb=parseFloat(inst.valorBase)||0;
+  var vt=inst.remuneracaoTipo==='diaria'?vb:inst.remuneracaoTipo==='hora'?vb*h:0;
+  var vd=inst.deslocamentoTipo==='km'?(parseFloat(inst.valorDeslocamento)||0)*(parseFloat(reg.distanciaKm)||0):inst.deslocamentoTipo==='fixo'?parseFloat(inst.valorDeslocamento)||0:0;
+  return{vt:vt,vd:vd,total:vt+vd,horas:h};
+}
+
+// datas múltiplas
+function fmtDatas(principal,adicionais){
+  if(!principal)return'';
+  var todas=[principal].concat((adicionais||[]).filter(Boolean)).sort();
+  if(todas.length===1)return fmtCur(todas[0]);
+  var partes=todas.map(function(d){var p=d.split('-');return{dia:p[2],mes:p[1],ano:p[0]};});
+  var mesmomes=partes.every(function(p){return p.mes===partes[0].mes&&p.ano===partes[0].ano;});
+  if(mesmomes){return partes.map(function(p){return p.dia;}).join(', ')+'/'+partes[0].mes+'/'+partes[0].ano;}
+  return todas.map(fmtCur).join(', ');
+}
+function fmtDatasExt(principal,adicionais){
+  if(!principal)return'';
+  var todas=[principal].concat((adicionais||[]).filter(Boolean)).sort();
+  if(todas.length===1)return fmtExt(todas[0]);
+  var partes=todas.map(function(d){var p=d.split('-');return{dia:p[2],mes:p[1],ano:p[0]};});
+  var mesmomes=partes.every(function(p){return p.mes===partes[0].mes&&p.ano===partes[0].ano;});
+  if(mesmomes){return partes.map(function(p){return p.dia;}).join(', ')+' de '+MESES[parseInt(partes[0].mes,10)-1]+' de '+partes[0].ano;}
+  return todas.map(fmtExt).join(' e ');
+}
+function fmtCH(curso,al){
+  if(al.chTeorica||al.chPratica){
+    var partes=[];
+    if(al.chTeorica)partes.push(al.chTeorica+'h teórico');
+    if(al.chPratica)partes.push(al.chPratica+'h prático');
+    return partes.join(' + ');
+  }
+  return(curso&&curso.cargaHoraria?curso.cargaHoraria+' horas':'');
+}
+
+// ── CURSOS PADRÃO ────────────────────────────────
+var CURSOS_DEF=[
+  {id:'c01',norma:'NR 35',nome:'Segurança no Trabalho em Altura',cargaHoraria:'08',validadeAnos:'2',topicos:T(['Normas regulamentadoras e legislação aplicável ao trabalho em altura.','Análise de Risco, permissão de trabalho e condições impeditivas.','Riscos potenciais inerentes à atividade e medidas de prevenção e controle.','Acidentes típicos do trabalho em altura.','Condutas em situação de emergência, técnicas de resgate e primeiros socorros.','EPIs para trabalho em altura: seleção, inspeção e limitação de uso.','Sistemas e procedimentos para o trabalho em altura.','Elaboração de APR e PT.','Utilização do cinto e suas regulagens.','Deslocamento com talabarte em Y.','Acesso vertical e nós básicos.','Pontos de ancoragem e montagem de sistema provisório.','Montagem de linha de vida horizontal provisória.','Sistemas de vantagem mecânica.'])},
+  {id:'c02',norma:'NR-33',nome:'Espaço Confinado — Supervisor',cargaHoraria:'40',validadeAnos:'1',topicos:T(['Introdução à NR-33.','Conceitos básicos e definições.','Riscos no espaço confinado.','Classificação dos espaços confinados.','PET – Permissão de Entrada e Trabalho.','Responsabilidade civil e criminal.','Avaliação e controle dos riscos.','Monitoramento dos riscos respiratórios.','Detector de gases.','EPI e equipamentos utilizados.','Resgate em espaço confinado.','O socorrista e primeiros socorros.'])},
+  {id:'c03',norma:'NR-33',nome:'Espaço Confinado — Trabalhador/Vigia',cargaHoraria:'16',validadeAnos:'1',topicos:T(['Introdução à NR-33 e definições.','Reconhecimento, avaliação e controle de riscos.','Classificação e atmosferas perigosas.','PET e seu correto preenchimento.','Responsabilidades do trabalhador autorizado e do vigia.','Equipamentos de monitoramento de atmosfera.','EPIs e EPCs para espaço confinado.','Noções de resgate e primeiros socorros.','Procedimentos de emergência.','Prática supervisionada.'])},
+  {id:'c04',norma:'NR-10',nome:'NR-10 — Segurança em Instalações e Serviços em Eletricidade',cargaHoraria:'40',validadeAnos:'2',topicos:T(['Introdução à segurança com eletricidade.','Choque elétrico, arco elétrico e campos eletromagnéticos.','Técnicas de análise de risco (Anexo II da NR-10).','Medidas de controle do risco elétrico.','Normas técnicas: NBR 5410 e NBR 5419.','EPCs e EPIs para trabalho com eletricidade.','Rotinas de trabalho e procedimentos.','Proteção e combate a incêndios elétricos.','Análise de acidentes elétricos.','Primeiros socorros em choque elétrico.','Prática supervisionada.'])},
+  {id:'c05',norma:'NR-10 SEP',nome:'NR-10 SEP — Sistema Elétrico de Potência',cargaHoraria:'40',validadeAnos:'2',topicos:T(['SEP: geração, transmissão e distribuição de energia.','Riscos adicionais do trabalho em SEP.','Técnicas de análise de risco para SEP.','EPIs e EPCs específicos para SEP.','Procedimentos em linhas vivas e desenergizadas.','Sistemas de aterramento temporário.','Acidentes típicos em SEP.','Prática supervisionada.'])},
+  {id:'c06',norma:'NR-10',nome:'NR-10 — Reciclagem',cargaHoraria:'16',validadeAnos:'2',topicos:T(['Atualização da legislação.','Revisão de riscos em instalações e serviços.','Medidas de controle do risco elétrico.','EPCs e EPIs.','Rotinas de trabalho e procedimentos.','Proteção e combate a incêndios.','Acidentes de origem elétrica.','Primeiros socorros.'])},
+  {id:'c07',norma:'LOTO',nome:'Lockout/Tagout — Bloqueio e Sinalização de Energias Perigosas',cargaHoraria:'08',validadeAnos:'1',topicos:T(['Conceito de LOTO e sua importância.','Fontes de energia perigosas.','Procedimentos de bloqueio (Lockout) e etiquetagem (Tagout).','Dispositivos de bloqueio.','Sequência correta de desenergização, bloqueio e liberação.','Procedimentos para bloqueio em grupo.','Responsabilidades do trabalhador autorizado.','Prática supervisionada.'])},
+  {id:'c08',norma:'NPT 017',nome:'Brigada de Incêndio — NPT 017, NR-23 e NBR 14276',cargaHoraria:'08',validadeAnos:'1',topicos:T(['Introdução e aspectos legais.','Teoria do fogo e propagação.','Classes de incêndio e métodos de extinção.','Agentes extintores.','Abandono de área e ponto de encontro.','Hemorragias, fraturas e queimaduras.','RCP, EPI e AED/DEA.','Equipamentos de combate a incêndio.','Extinção de fogo nas classes A, B, C e K (prático).','RCP – reanimação cardiopulmonar (prático).'])},
+  {id:'c09',norma:'NR-05',nome:'CIPA — Comissão Interna de Prevenção de Acidentes e de Assédio',cargaHoraria:'20',validadeAnos:'1',topicos:T(['Estudo do ambiente e condições de trabalho.','Metodologia de investigação e análise de acidentes.','Princípios de higiene ocupacional e EPIs.','Legislação vigente e deveres dos membros.','Processo eleitoral e composição da CIPA.','Regras de conduta e prevenção ao assédio.'])},
+  {id:'c10',norma:'NR-06',nome:'EPI — Equipamento de Proteção Individual',cargaHoraria:'04',validadeAnos:'1',topicos:T(['Introdução às Normas Regulamentadoras.','Risco ocupacional e proteção oferecida.','Forma adequada de uso e ajuste.','Manutenção, limpeza, higienização e guarda.','Certificado de Aprovação (CA).','Acidentes causados por mau uso dos EPIs.'])},
+  {id:'c11',norma:'NR-07',nome:'Primeiros Socorros',cargaHoraria:'04',validadeAnos:'1',topicos:T(['Introdução aos Primeiros Socorros.','Abordagem da vítima e análise de cenários.','Análise primária e secundária.','Liberação de vias aéreas.','Estado de choque e convulsões.','AVE e infartos.','Ferimentos, hemorragia, fraturas e queimaduras.','Manobras de reanimação – RCP.'])},
+  {id:'c12',norma:'NR-11',nome:'Operador de Empilhadeira',cargaHoraria:'16',validadeAnos:'1',topicos:T(['A empilhadeira: conceito e componentes.','Equilíbrio e funcionamento do contrapeso.','Legislação de trânsito e SST.','EPCs e EPIs.','Operação segura.','Inspeção, regulagem e manutenção.','Procedimentos em emergência.','Prática de operação.'])},
+  {id:'c13',norma:'NR-11',nome:'Operador de Ponte Rolante',cargaHoraria:'16',validadeAnos:'1',topicos:T(['Fundamentos da NR-11.','Tipos de pontes rolantes e talhas.','Movimentação de carga.','Inspeção de segurança.','Causas de acidentes com pontes rolantes.','Operação prática de manobras.'])},
+  {id:'c14',norma:'NR-11',nome:'Operador de Paleteira',cargaHoraria:'16',validadeAnos:'1',topicos:T(['Conceito e tipos de paleteira.','Riscos na operação.','EPCs e EPIs.','Operação segura.','Inspeção e manutenção.','Procedimentos em emergência.','Prática supervisionada.'])},
+  {id:'c15',norma:'NR-11',nome:'Operador de Caminhão Guindauto — Munck',cargaHoraria:'20',validadeAnos:'1',topicos:T(['Conceito e componentes do guindauto.','Capacidade e tabela de carga.','Riscos da operação.','Técnicas de amarração e sinalização de carga.','Inspeção, regulagem e manutenção.','Procedimentos em situações de emergência.','Prática supervisionada.'])},
+  {id:'c16',norma:'NR-12',nome:'NR-12 — Segurança no Trabalho em Máquinas e Equipamentos',cargaHoraria:'08',validadeAnos:'0',topicos:T(['Apresentação da NR-12.','Princípios gerais e medidas de proteção.','Identificação dos riscos e proteções específicas.','Medidas de proteção coletiva, administrativa e individual.','Sinalização de segurança.','Dispositivos de parada de emergência.','Bloqueio LOTO durante inspeção e manutenção.'])},
+  {id:'c17',norma:'NR-12',nome:'Operador de Cesto Aéreo',cargaHoraria:'16',validadeAnos:'1',topicos:T(['Regulamentação de segurança sobre cestos aéreos.','Descrição e funcionamento do equipamento.','Riscos na operação.','Inspeção pré-operacional.','Uso de cinto e ponto de ancoragem.','Procedimentos de emergência.','Prática supervisionada.'])},
+  {id:'c18',norma:'NR-18',nome:'Condições e Meio Ambiente do Trabalho na Construção Civil',cargaHoraria:'08',validadeAnos:'0',topicos:T(['Introdução à NR-18.','PGR no canteiro de obras.','Movimentação e transporte de materiais.','Proteção contra quedas.','Instalações elétricas provisórias.','Sinalização de segurança.','EPIs específicos da construção civil.','Procedimentos de emergência.'])},
+  {id:'c19',norma:'NR-18',nome:'Montagem e Desmontagem de Andaime Fachadeiro',cargaHoraria:'08',validadeAnos:'2',topicos:T(['Definição de andaimes.','Materiais utilizados.','Tipos de andaimes.','Procedimentos de montagem.','Tabela de suportação de peso.','Segurança na montagem.','EPIs utilizados.','Noções de trabalho em altura – NR-35.'])},
+  {id:'c20',norma:'NR-18',nome:'Operador de PEMT — Plataforma Elevatória Móvel de Trabalho',cargaHoraria:'04',validadeAnos:'2',topicos:T(['Definições de PEMT.','Tipos: tesoura, articulada, telescópica.','Componentes e dispositivos de segurança.','Riscos da operação.','Inspeção pré-operacional.','Procedimentos seguros de operação.','Uso de cinto e ponto de ancoragem.','Procedimentos de emergência.'])},
+  {id:'c21',norma:'NR-17',nome:'Ergonomia',cargaHoraria:'08',validadeAnos:'0',topicos:T(['Introdução à NR-17 e conceitos de ergonomia.','Adaptação das condições de trabalho.','Levantamento, transporte e descarga manual.','Mobiliário e equipamentos dos postos de trabalho.','Condições ambientais: iluminação, ruído, temperatura.','Organização do trabalho: ritmo, pausas e jornada.','Prevenção de LER/DORT.'])},
+  {id:'c22',norma:'NR-20',nome:'NR-20 — Segurança com Inflamáveis e Combustíveis',cargaHoraria:'08',validadeAnos:'3',topicos:T(['Inflamáveis e combustíveis: características e perigos.','Controles coletivos e individuais.','Sistemas de classificação de áreas.','Procedimentos de prevenção de acidentes.','Medidas de atuação em emergência.','Equipamentos de combate a incêndio.','Prática de procedimentos de segurança.'])},
+  {id:'c23',norma:'NR-01',nome:'NR-01 — Disposições Gerais e Gerenciamento de Riscos Ocupacionais',cargaHoraria:'08',validadeAnos:'0',topicos:T(['NR-1 – Disposições Gerais.','Objetivo e campo de aplicação.','Direitos e deveres.','Capacitação e treinamento em SST.','Diretrizes para EaD e semipresencial.','Riscos inerentes à função.','Uso adequado dos EPIs e EPCs.'])},
+  {id:'c24',norma:'NR-13',nome:'Segurança em Caldeiras, Vasos de Pressão e Tubulações',cargaHoraria:'40',validadeAnos:'1',topicos:T(['Introdução à NR-13.','Conceitos básicos: pressão, temperatura e categorização.','Dispositivos de segurança.','Riscos de explosão e vazamento.','Procedimentos de inspeção periódica.','Prontuário do equipamento.','Procedimentos operacionais seguros.','Responsabilidades do operador.'])},
+  {id:'c25',norma:'NR-32',nome:'Segurança e Saúde no Trabalho em Serviços de Saúde',cargaHoraria:'08',validadeAnos:'0',topicos:T(['Introdução à NR-32.','Riscos biológicos e vacinação.','Riscos químicos: manuseio de medicamentos perigosos.','Gerenciamento de resíduos de serviços de saúde (RSS).','EPIs específicos.','Acidentes com material perfurocortante.'])},
+  {id:'c26',norma:'NR-34',nome:'Treinamento Admissional — Indústria Naval',cargaHoraria:'06',validadeAnos:'0',topicos:T(['Condições e meio ambiente de trabalho na indústria naval.','Riscos inerentes à construção e reparação naval.','EPC existente no estabelecimento.','Uso adequado do EPI.','Procedimentos de emergência e evacuação.'])},
+  {id:'c27',norma:'NR-34',nome:'Treinamento Periódico — Indústria Naval',cargaHoraria:'04',validadeAnos:'1',topicos:T(['Atualização sobre riscos e condições de trabalho.','Revisão de procedimentos de segurança.','Análise de incidentes e acidentes ocorridos.','Reforço de procedimentos de emergência.'])},
+  {id:'c28',norma:'NR-35',nome:'Acesso por Cordas — Nível 1 (Iniciante)',cargaHoraria:'40',validadeAnos:'3',topicos:T(['Legislação aplicável ao acesso por cordas.','EPIs para acesso por cordas.','Sistemas de ancoragem.','Nós básicos e suas aplicações.','Técnicas de progressão ascendente e descendente.','Uso de dispositivos de bloqueio, descensores e ascensores.','Transferências entre sistemas.','Procedimentos básicos de autorresgate.','Elaboração de Permissão de Trabalho.','Prática supervisionada extensiva (mínimo 32 horas).'])},
+  {id:'c29',norma:'NR-35',nome:'Acesso por Cordas — Nível 2 (Intermediário)',cargaHoraria:'40',validadeAnos:'3',topicos:T(['Revisão da legislação e normas técnicas.','Sistemas avançados de ancoragem.','Técnicas de rigging e movimentação de carga.','Resgate de companheiro: içamento e descida assistida.','Sistemas de vantagem mecânica.','Prática supervisionada extensiva (mínimo 32 horas).'])},
+  {id:'c30',norma:'NR-35',nome:'Acesso por Cordas — Nível 3 (Avançado/Supervisor)',cargaHoraria:'48',validadeAnos:'3',topicos:T(['Responsabilidades do supervisor.','Elaboração de Declarações de Método e Avaliações de Risco.','Planejamento e supervisão de operações complexas.','Técnicas avançadas de resgate.','Gestão de equipes.','Prática supervisionada extensiva (mínimo 32 horas).'])},
+  {id:'c31',norma:'NR-35',nome:'NR-35 Avançado — Trabalho com Cordas',cargaHoraria:'40',validadeAnos:'2',topicos:T(['Revisão da legislação aplicável.','Sistemas de ancoragem avançados.','Técnicas avançadas de progressão.','Passagem de nós, desvios e fracionamentos.','Técnicas de resgate de companheiro.','Sistemas de vantagem mecânica.','Elaboração de Análise de Risco e PT.','Prática supervisionada extensiva.'])},
+  {id:'c32',norma:'NR-11',nome:'Segurança em Transporte, Movimentação e Armazenagem',cargaHoraria:'04',validadeAnos:'1',topicos:T(['Introdução à Segurança na Movimentação de Materiais.','Legislação Aplicável — NR-11, NR-01 e NR-06.','Identificação de Riscos.','Procedimentos Seguros de Operação.','Equipamentos de Proteção Individual (EPI).','Organização e Armazenagem de Materiais.','Procedimentos em Situações de Emergência.'])},
+  {id:'c33',norma:'NR-18',nome:'Operações de Soldagem e Corte a Quente',cargaHoraria:'20',validadeAnos:'1',topicos:T(['Introdução à segurança em soldagem.','Tipos de processos de soldagem e corte.','Riscos: queimaduras, radiação, gases tóxicos.','Permissão de Trabalho para trabalho a quente.','EPIs específicos.','Ventilação e exaustão de fumos metálicos.','Prevenção e combate a incêndio.','Prática supervisionada.'])},
+  {id:'c34',norma:'NR-22',nome:'CIPAMIN — Comissão Interna na Mineração',cargaHoraria:'40',validadeAnos:'1',topicos:T(['Introdução à NR-22.','Atribuições e responsabilidades da CIPAMIN.','Riscos específicos da atividade minerária.','PGR aplicado à mineração.','Investigação e análise de acidentes.','Processo eleitoral e funcionamento.','Plano de emergência em minas.'])},
+  {id:'c35',norma:'NR-31',nome:'Segurança e Saúde no Trabalho na Agricultura e Pecuária',cargaHoraria:'20',validadeAnos:'1',topicos:T(['Introdução à NR-31.','Riscos inerentes às atividades rurais.','PGRTR.','Uso seguro de máquinas agrícolas.','EPIs específicos para atividades rurais.','CIPATR.','Procedimentos de emergência e primeiros socorros.'])},
+  {id:'c36',norma:'NR-37',nome:'Segurança e Saúde em Plataformas de Petróleo (Offshore)',cargaHoraria:'16',validadeAnos:'1',topicos:T(['Introdução à NR-37.','Riscos específicos do ambiente offshore.','Procedimentos de embarque e desembarque.','Sistemas de alarme e abandono de plataforma.','EPIs específicos.','Gerenciamento de riscos e PT em plataformas.','Procedimentos de emergência médica offshore.'])},
+  {id:'c37',norma:'NR-18',nome:'Segurança na Utilização de Cadeira Suspensa',cargaHoraria:'16',validadeAnos:'1',topicos:T(['Introdução à NR-18.','Responsabilidades legais.','Levantamento de riscos.','PGR aplicado à atividade.','Permissão de Trabalho (PT).','Cadeira suspensa: tipos e funcionamento.','Sistemas de fixação e ancoragem.','Uso do cinto de segurança tipo paraquedista.','Procedimentos de emergência e resgate.','Prática supervisionada.'])},
+  {id:'c38',norma:'NR-18',nome:'Escavação Manual de Tubulão',cargaHoraria:'24',validadeAnos:'1',topicos:T(['Introdução ao processo de escavação manual de tubulão.','Riscos: soterramento, asfixia, gases tóxicos.','PGR e Permissão de Trabalho.','Sistemas de escoramento e estabilização.','Ventilação forçada e monitoramento de atmosfera.','EPIs específicos.','Procedimentos de resgate e emergência.','Prática supervisionada.'])},
+  {id:'c39',norma:'NR-10',nome:'Curso Básico de Eletricista',cargaHoraria:'140',validadeAnos:'0',topicos:T(['Fundamentos de eletricidade.','Leitura e interpretação de diagramas elétricos.','Riscos elétricos: choque, arco elétrico, incêndio.','Normas técnicas: NBR 5410 e NR-10.','Instalação e manutenção de circuitos elétricos.','Dispositivos de proteção.','EPIs e EPCs.','Procedimentos LOTO.','Primeiros socorros em caso de choque elétrico.'])},
+  {id:'c40',norma:'NR-12',nome:'NR-12 Anexo VII — Máquinas para Açougue e Mercearia',cargaHoraria:'08',validadeAnos:'1',topicos:T(['Regulamentação de segurança.','Funcionamento: serras-fita, moedores, cutters e fatiadoras.','Riscos na operação e áreas de perigo.','Medidas e dispositivos de segurança.','Bloqueio de funcionamento durante limpeza.','EPIs específicos.','Demonstração prática.'])},
+  {id:'c41',norma:'NR-08',nome:'Edificações',cargaHoraria:'08',validadeAnos:'0',topicos:T(['Introdução à NR-08.','Segurança em pisos, paredes, forros e coberturas.','Circulações, corredores e saídas.','Segurança em escadas, rampas e passarelas.','Sinalização de segurança em edificações.','Integração com NR-12, NR-18 e NR-23.','Inspeção e manutenção preventiva.'])},
+  {id:'c42',norma:'NR-18',nome:'NR-18 Anexo IV — Operador de Plataforma Elevatória',cargaHoraria:'04',validadeAnos:'2',topicos:T(['Definições de plataforma elevatória.','Tipos e componentes.','Riscos da operação.','Inspeção pré-operacional.','Procedimentos seguros de operação.','Uso de cinto e ponto de ancoragem.','Procedimentos de emergência.','Prática supervisionada.'])},
+  {id:'c43',norma:'NR-34',nome:'Capacitação para Atividades com Maçarico',cargaHoraria:'08',validadeAnos:'1',topicos:T(['Riscos do trabalho com maçarico.','Equipamentos e dispositivos de segurança.','Permissão de Trabalho para trabalho a quente.','Prevenção e combate a princípios de incêndio.','EPIs específicos.','Prática supervisionada.'])}
+];
+
+var EMP_DEF={nomeEmpresa:'Minha Empresa de Segurança',cnpj:'',nomeInstrutor:'',cargoInstrutor:'Técnico de Segurança do Trabalho',registro:'',logo:null,assinatura:null,corDestaque:'#5a6e52'};
+
+// ── ESTADO ───────────────────────────────────────
+var S={
+  tela:'inicio',
+  empresa:Object.assign({},EMP_DEF),
+  cursos:CURSOS_DEF.map(function(c){return Object.assign({},c,{topicos:c.topicos.slice()});}),
+  alunos:[],arts:[],instrutores:[],regs:[],turmas:[],seq:1,
+  alunoForm:null,editIdx:null,certPrev:null,cartPrev:null,
+  artEd:null,instEd:null,regEd:null,turmaEd:null,cursoEd:null,
+  fB:'',fC:'',fT:'',fS:'',
+  verifCod:'',verifRes:null,verifBuscado:false,
+  _cartEdit:null
+};
+
+function novoAluno(){return{nome:'',cpf:'',cursoId:S.cursos[0]?S.cursos[0].id:'c01',dataRealizacao:'',datasAdicionais:[],chTeorica:'',chPratica:'',local:'Curitiba',aproveitamento:'100',topicosSelecionados:[],tipoEmissao:'formacao',validadeAnos:'',artId:'',certificadoId:'',instrutoresIds:[],turmaId:'',foto:null};}
+function novaArt(){return{id:'art_'+Date.now(),tipo:'engenheiro',responsavel:'',conselho:'CREA',registro:'',numeroArt:'',ano:String(new Date().getFullYear()),servico:''};}
+function novoInst(){return{id:'ins_'+Date.now(),nome:'',tipo:'principal',registro:'',cargo:'Técnico de Segurança do Trabalho',assinatura:null,remuneracaoTipo:'diaria',valorBase:'',deslocamentoTipo:'nenhum',valorDeslocamento:''};}
+function novoReg(){return{id:'reg_'+Date.now(),instrutorId:'',data:'',cursoNome:'',cidade:'',local:'',horaInicio:'',horaFim:'',distanciaKm:'',observacoes:'',pago:false,valorPago:''};}
+function novaTurma(){return{id:'tur_'+Date.now(),nome:'',cursoId:S.cursos[0]?S.cursos[0].id:'c01',data:'',local:'Curitiba',artId:'',observacoes:''};}
+S.alunoForm=novoAluno();
+
+// ── SYNC/AUTH ─────────────────────────────────────
+var AUTH={
+  licenca:null,
+  entrar:function(){
+    var input=document.getElementById('lic-input');
+    var btn=document.getElementById('lic-btn');
+    var err=document.getElementById('lic-err');
+    var cod=input.value.trim().toUpperCase();
+    if(!cod){err.textContent='Digite o código de licença.';return;}
+    btn.disabled=true;btn.textContent='Verificando...';err.textContent='';
+    sbFetch('licencas?codigo=eq.'+encodeURIComponent(cod)+'&select=*').then(function(rows){
+      if(!rows||rows.length===0){err.textContent='❌ Código inválido.';btn.disabled=false;btn.textContent='Entrar';return;}
+      var lic=rows[0];
+      if(!lic.ativo){err.textContent='❌ Licença desativada.';btn.disabled=false;btn.textContent='Entrar';return;}
+      if(lic.validade&&new Date(lic.validade)<new Date()){err.textContent='❌ Licença vencida em '+new Date(lic.validade).toLocaleDateString('pt-BR')+'.';btn.disabled=false;btn.textContent='Entrar';return;}
+      AUTH.licenca=lic;
+      localStorage.setItem('cg:lic',JSON.stringify(lic));
+      sbFetch('licencas?codigo=eq.'+encodeURIComponent(cod),{method:'PATCH',prefer:'return=minimal',body:JSON.stringify({ultimo_acesso:new Date().toISOString()})}).catch(function(){});
+      sbFetch('log_acessos',{method:'POST',prefer:'return=minimal',body:JSON.stringify({codigo_licenca:cod,evento:'login',detalhes:'Acesso via browser'})}).catch(function(){});
+      SYNC.carregar().then(function(){AUTH.iniciarApp();});
+    }).catch(function(){
+      var salva=localStorage.getItem('cg:lic');
+      if(salva){var lic=JSON.parse(salva);if(lic.codigo===cod&&lic.ativo){AUTH.licenca=lic;SYNC.carregar().then(function(){AUTH.iniciarApp(true);});return;}}
+      err.textContent='❌ Erro de conexão. Tente novamente.';
+      btn.disabled=false;btn.textContent='Entrar';
+    });
+  },
+  checarLicencaSalva:function(){
+    var salva=localStorage.getItem('cg:lic');
+    if(!salva)return Promise.resolve(false);
+    var lic=JSON.parse(salva);
+    return sbFetch('licencas?codigo=eq.'+encodeURIComponent(lic.codigo)+'&select=*').then(function(rows){
+      if(!rows||rows.length===0||!rows[0].ativo){localStorage.removeItem('cg:lic');return false;}
+      if(rows[0].validade&&new Date(rows[0].validade)<new Date()){localStorage.removeItem('cg:lic');return false;}
+      AUTH.licenca=rows[0];localStorage.setItem('cg:lic',JSON.stringify(rows[0]));return true;
+    }).catch(function(){
+      if(lic.ativo){AUTH.licenca=lic;return true;}
+      return false;
+    });
+  },
+  iniciarApp:function(offline){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app-screen').style.display='block';
+    document.getElementById('sb-nome').textContent=AUTH.licenca.nome_cliente.split(' ')[0];
+    document.getElementById('lic-info').textContent='Licença: '+AUTH.licenca.codigo+'\nPlano: '+AUTH.licenca.plano;
+    if(offline)document.getElementById('sync-bar').textContent='⚠️ Modo offline';
+    CG.render();
+  },
+  sair:function(){
+    if(!confirm('Deseja sair?'))return;
+    localStorage.removeItem('cg:lic');location.reload();
+  }
+};
+
+var SYNC={
+  _timer:null,
+  carregar:function(){
+    var cod=AUTH.licenca&&AUTH.licenca.codigo;if(!cod)return Promise.resolve();
+    return sbFetch('dados_cliente?codigo_licenca=eq.'+encodeURIComponent(cod)+'&select=dados').then(function(rows){
+      if(rows&&rows.length>0&&rows[0].dados){
+        var d=rows[0].dados;
+        if(d.empresa)S.empresa=d.empresa;
+        if(d.cursos)S.cursos=d.cursos;
+        if(d.alunos)S.alunos=d.alunos;
+        if(d.arts)S.arts=d.arts;
+        if(d.instrutores)S.instrutores=d.instrutores;
+        if(d.regs)S.regs=d.regs;
+        if(d.turmas)S.turmas=d.turmas;
+        if(d.seq)S.seq=d.seq;
+        document.getElementById('sync-bar').textContent='✓ Sincronizado — '+new Date().toLocaleTimeString('pt-BR');
+      }
+    }).catch(function(){
+      var loc=localStorage.getItem('cg:dados');
+      if(loc){var d=JSON.parse(loc);['empresa','cursos','alunos','arts','instrutores','regs','turmas','seq'].forEach(function(k){if(d[k])S[k]=d[k];});}
+      document.getElementById('sync-bar').textContent='⚠️ Offline — dados locais';
+    });
+  },
+  salvar:function(){
+    clearTimeout(SYNC._timer);
+    SYNC._timer=setTimeout(function(){SYNC._enviar();},1500);
+  },
+  _enviar:function(){
+    var cod=AUTH.licenca&&AUTH.licenca.codigo;if(!cod)return;
+    var dados={empresa:S.empresa,cursos:S.cursos,alunos:S.alunos,arts:S.arts,instrutores:S.instrutores,regs:S.regs,turmas:S.turmas,seq:S.seq};
+    localStorage.setItem('cg:dados',JSON.stringify(dados));
+    sbFetch('dados_cliente?codigo_licenca=eq.'+encodeURIComponent(cod)+'&select=id').then(function(rows){
+      if(rows&&rows.length>0){
+        return sbFetch('dados_cliente?codigo_licenca=eq.'+encodeURIComponent(cod),{method:'PATCH',prefer:'return=minimal',body:JSON.stringify({dados:dados,versao:VERSAO,atualizado_em:new Date().toISOString()})});
+      } else {
+        return sbFetch('dados_cliente',{method:'POST',prefer:'return=minimal',body:JSON.stringify({codigo_licenca:cod,dados:dados,versao:VERSAO})});
+      }
+    }).then(function(){
+      document.getElementById('sync-bar').textContent='✓ Sincronizado — '+new Date().toLocaleTimeString('pt-BR');
+    }).catch(function(){
+      document.getElementById('sync-bar').textContent='⚠️ Salvo localmente';
+    });
+  }
+};
+
+function salvar(){SYNC.salvar();}
+
+// ── NAVEGAÇÃO ─────────────────────────────────────
+var NAVS=[
+  {id:'inicio',ic:'🏠',lb:'Início'},
+  {id:'empresa',ic:'🏢',lb:'Empresa'},
+  {id:'cursos',ic:'📚',lb:'Cursos'},
+  {id:'turmas',ic:'👥',lb:'Turmas'},
+  {id:'arts',ic:'🛡',lb:'ARTs'},
+  {id:'instrutores',ic:'👤',lb:'Instrutores'},
+  {id:'horas',ic:'💰',lb:'Pagamentos'},
+  {id:'emitir',ic:'📜',lb:'Emitir'},
+  {id:'importar',ic:'⬆',lb:'Importar'},
+  {id:'alunos',ic:'📋',lb:'Alunos'},
+  {id:'verificar',ic:'🔍',lb:'Verificar'},
+  {id:'licencas',ic:'🔑',lb:'Licenças'}
+];
+
+var TIPL={principal:'Instrutor Principal',auxiliar:'Instrutor Auxiliar',engenheiro:'Engenheiro Responsável',coordenador:'Coordenador Técnico'};
+var TE_MAP={formacao:'',reciclagem:' (Reciclagem)',mudanca_empresa:' (Mudança de Empresa)',mudanca_funcao:' (Mudança de Função)',retorno_afastamento:' (Retorno de Afastamento)',atualizacao_tecnica:' (Atualização Técnica)'};
+var STM={
+  valido:{cl:'#f0fff4',bc:'#9ae6b4',tc:'#2a7a2a',lbl:'✅ Válido'},
+  vencendo:{cl:'#fff8e8',bc:'#f0d99a',tc:'#b7791f',lbl:'⚠️ Vencendo'},
+  vencido:{cl:'#fff0f0',bc:'#feb2b2',tc:'#c0392b',lbl:'⛔ Vencido'},
+  indeterminado:{cl:'#f5f5f5',bc:'#ddd',tc:'#777',lbl:'∞ Indeterminado'}
+};
+
+// ── APP ───────────────────────────────────────────
+var CG={
+  ir:function(t){S.tela=t;CG.render();},
+  toggleMenu:function(){document.getElementById('sidebar').classList.toggle('mob-open');},
+
+  render:function(){
+    var isMaster=AUTH.licenca&&AUTH.licenca.plano==='master';
+    var nl=document.getElementById('nav-list');
+    nl.innerHTML=NAVS.filter(function(n){return n.id!=='licencas'||isMaster;}).map(function(n){
+      return '<button class="nav-btn'+(S.tela===n.id?' active':'')+'" onclick="CG.ir(\''+n.id+'\')">'+n.ic+' '+n.lb+'</button>';
+    }).join('');
+    var bn=document.getElementById('bottomnav');
+    bn.innerHTML=NAVS.filter(function(n){return n.id!=='licencas'||isMaster;}).map(function(n){
+      return '<button class="bnav-btn'+(S.tela===n.id?' active':'')+'" onclick="CG.ir(\''+n.id+'\')"><span style="font-size:17px">'+n.ic+'</span>'+n.lb+'</button>';
+    }).join('');
+    var screens={
+      inicio:CG.pgInicio,empresa:CG.pgEmpresa,
+      cursos:function(){return S.cursoEd?CG.pgCursoEd():CG.pgCursos();},
+      turmas:function(){return S.turmaEd?CG.pgTurmaEd():CG.pgTurmas();},
+      arts:function(){return S.artEd?CG.pgArtEd():CG.pgArts();},
+      instrutores:function(){return S.instEd?CG.pgInstEd():CG.pgInstrutores();},
+      horas:function(){return S.regEd?CG.pgRegEd():CG.pgHoras();},
+      emitir:CG.pgEmitir,importar:CG.pgImportar,alunos:CG.pgAlunos,
+      preview:CG.pgPreview,carteirinha:CG.pgCarteirinha,
+      verificar:CG.pgVerificar,licencas:CG.pgLicencas
+    };
+    var fn=screens[S.tela]||screens.inicio;
+    document.getElementById('main').innerHTML=fn.call(CG);
+    if(window.innerWidth<=700)document.getElementById('sidebar').classList.remove('mob-open');
+  },
+
+  // ── INÍCIO ──
+  pgInicio:function(){
+    var venc=S.alunos.filter(function(a){var c=S.cursos.find(function(x){return x.id===a.cursoId;});var v=a.validadeAnos||(c?c.validadeAnos:'1');return statusVal(a.dataRealizacao,v)==='vencido';}).length;
+    var aviso=S.alunos.filter(function(a){var c=S.cursos.find(function(x){return x.id===a.cursoId;});var v=a.validadeAnos||(c?c.validadeAnos:'1');return statusVal(a.dataRealizacao,v)==='vencendo';}).length;
+    var lic=AUTH.licenca;
+    return '<h1>Bem-vindo ao CertGen</h1>'+
+    '<p style="color:#666;margin-bottom:16px">'+esc(S.empresa.nomeEmpresa)+'</p>'+
+    '<div class="g3" style="margin-bottom:14px">'+
+      '<div class="card" style="text-align:center;padding:16px"><div style="font-size:26px;font-weight:700;color:#5a6e52">'+S.cursos.length+'</div><div style="font-size:12px;color:#777">Cursos</div></div>'+
+      '<div class="card" style="text-align:center;padding:16px"><div style="font-size:26px;font-weight:700;color:#5a6e52">'+S.alunos.length+'</div><div style="font-size:12px;color:#777">Emitidos</div></div>'+
+      '<div class="card" style="text-align:center;padding:16px"><div style="font-size:26px;font-weight:700;color:#5a6e52">'+S.turmas.length+'</div><div style="font-size:12px;color:#777">Turmas</div></div>'+
+    '</div>'+
+    (venc||aviso?'<div class="card" style="background:#fff8e8;border:1px solid #f0d99a;margin-bottom:14px">'+
+      (venc?'<div style="color:#c0392b;font-weight:700">⛔ '+venc+' certificado(s) VENCIDO(s)</div>':'')+
+      (aviso?'<div style="color:#b7791f;font-weight:700;margin-top:4px">⚠️ '+aviso+' vencendo em até 60 dias</div>':'')+
+      '<button class="btn btn-s btn-sm" style="margin-top:8px" onclick="CG.ir(\'alunos\')">Ver alunos</button>'+
+    '</div>':'')+
+    '<div class="card" style="background:#f0f4ee;border:1px solid #d8e3d4;margin-bottom:14px;padding:14px">'+
+      '<div style="font-size:12px;color:#555"><b>👤 Licença:</b> '+esc(lic?lic.nome_cliente:'')+' &nbsp;|&nbsp; <b>Plano:</b> '+esc(lic?lic.plano:'')+' &nbsp;|&nbsp; <b>Código:</b> <span style="font-family:monospace">'+esc(lic?lic.codigo:'')+'</span></div>'+
+    '</div>'+
+    '<div class="card"><h2>Ações rápidas</h2><div class="flex">'+
+      '<button class="btn btn-p" onclick="CG.ir(\'emitir\')">📜 Emitir</button>'+
+      '<button class="btn btn-s" onclick="CG.ir(\'importar\')">⬆ Importar</button>'+
+      '<button class="btn btn-s" onclick="CG.ir(\'alunos\')">📋 Alunos</button>'+
+      '<button class="btn btn-s" onclick="CG.ir(\'turmas\')">👥 Turmas</button>'+
+      '<button class="btn btn-s" onclick="CG.ir(\'verificar\')">🔍 Verificar</button>'+
+      '<button class="btn btn-s" onclick="SYNC.carregar().then(function(){CG.render();toast(\'Sincronizado!\')})">🔄 Sincronizar</button>'+
+    '</div></div>'+
+    '<div class="card" style="background:#f0f4ee;border:1px solid #d8e3d4"><h2 style="color:#2d3a28">📱 Instalar como App</h2>'+
+      '<p style="font-size:12px;color:#555;margin-bottom:12px;line-height:1.7">Instale o CertGen no seu dispositivo para acesso rápido.</p>'+
+      '<button id="pwa-install-btn" class="btn btn-p" onclick="instalarPWA()" style="display:none">📲 Instalar app agora</button>'+
+      '<div style="font-size:12px;color:#888;margin-top:8px;line-height:1.7"><b>iPhone/iPad:</b> Compartilhar → "Adicionar à Tela de Início"<br><b>Android/Chrome:</b> O botão acima aparece automaticamente<br><b>PC Chrome/Edge:</b> Ícone de instalação na barra de endereço</div>'+
+    '</div>'+
+    '<div class="card"><h2>Backup manual</h2>'+
+      '<p style="font-size:12px;color:#777;margin-bottom:10px">Dados salvos no Supabase automaticamente.</p>'+
+      '<div class="flex">'+
+        '<button class="btn btn-s" onclick="CG.baixarBackup()">⬇ Baixar JSON</button>'+
+        '<button class="btn btn-s" onclick="document.getElementById(\'inp-bk\').click()">⬆ Restaurar</button>'+
+        '<input id="inp-bk" type="file" accept=".json" style="display:none" onchange="CG.restaurarBk(this)">'+
+      '</div></div>';
+  },
+
+  // ── EMPRESA ──
+  pgEmpresa:function(){
+    var e=S.empresa;
+    return '<h1>Minha Empresa</h1><div class="card" style="max-width:600px">'+
+    '<div style="margin-bottom:14px"><label class="lbl">Logo da empresa</label>'+
+      (e.logo?'<img src="'+e.logo+'" style="height:56px;border-radius:50%;border:1px solid #eee;display:block;margin-bottom:8px">':'')+
+      '<input type="file" accept="image/*" onchange="CG.upImg(this,\'logo\')" style="font-size:12.5px"></div>'+
+    '<div style="margin-bottom:12px"><label class="lbl">Nome da empresa</label><input class="inp" id="e-nome" value="'+esc(e.nomeEmpresa)+'"></div>'+
+    '<div style="margin-bottom:12px"><label class="lbl">CNPJ</label><input class="inp" id="e-cnpj" value="'+esc(e.cnpj)+'" placeholder="00.000.000/0000-00"></div>'+
+    '<div class="g2" style="margin-bottom:12px">'+
+      '<div><label class="lbl">Instrutor / Técnico (padrão)</label><input class="inp" id="e-inst" value="'+esc(e.nomeInstrutor)+'"></div>'+
+      '<div><label class="lbl">Cargo</label><input class="inp" id="e-cargo" value="'+esc(e.cargoInstrutor)+'"></div>'+
+    '</div>'+
+    '<div style="margin-bottom:12px"><label class="lbl">Registro (MTE/CREA)</label><input class="inp" id="e-reg" value="'+esc(e.registro)+'"></div>'+
+    '<div style="margin-bottom:12px"><label class="lbl">Cor de destaque</label><input type="color" id="e-cor" value="'+e.corDestaque+'" style="width:56px;height:36px;border:1px solid #ddd;border-radius:7px;cursor:pointer"></div>'+
+    '<div style="margin-bottom:14px"><label class="lbl">Assinatura padrão (PNG)</label>'+
+      (e.assinatura?'<img src="'+e.assinatura+'" style="height:40px;display:block;margin-bottom:6px">':'')+
+      '<input type="file" accept="image/png" onchange="CG.upImg(this,\'assinatura\')" style="font-size:12.5px"></div>'+
+    '<button class="btn btn-p" onclick="CG.salvarEmp()">✓ Salvar empresa</button>'+
+    '</div>';
+  },
+  upImg:function(inp,campo){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){S.empresa[campo]=e.target.result;salvar();CG.render();};r.readAsDataURL(f);},
+  salvarEmp:function(){
+    S.empresa.nomeEmpresa=document.getElementById('e-nome').value;
+    S.empresa.cnpj=document.getElementById('e-cnpj').value;
+    S.empresa.nomeInstrutor=document.getElementById('e-inst').value;
+    S.empresa.cargoInstrutor=document.getElementById('e-cargo').value;
+    S.empresa.registro=document.getElementById('e-reg').value;
+    S.empresa.corDestaque=document.getElementById('e-cor').value;
+    salvar();toast('Empresa salva!');CG.render();
+  },
+
+  // ── CURSOS ──
+  pgCursos:function(){
+    return '<div class="row-sb" style="margin-bottom:14px"><h1 style="margin:0">Cursos ('+S.cursos.length+')</h1>'+
+    '<div class="flex"><button class="btn btn-s btn-sm" onclick="CG.restaurarCursos()">↺ Restaurar 43</button><button class="btn btn-p btn-sm" onclick="CG.addCurso()">+ Novo</button></div></div>'+
+    S.cursos.map(function(c,i){
+      return '<div class="card" style="padding:12px;margin-bottom:8px"><div class="row-sb">'+
+      '<div><div style="font-weight:600">'+esc(c.norma)+' — '+esc(c.nome)+'</div>'+
+      '<div style="font-size:12px;color:#888;margin-top:2px">'+c.cargaHoraria+'h · '+labelVal(c.validadeAnos)+' · '+c.topicos.length+' tópico(s)</div></div>'+
+      '<div class="flex"><button class="btn btn-s btn-sm" onclick="CG.editCurso('+i+')">✏</button><button class="btn btn-d btn-sm" onclick="CG.delCurso(\''+c.id+'\')">🗑</button></div>'+
+      '</div></div>';
+    }).join('');
+  },
+  addCurso:function(){var n={id:'cu_'+Date.now(),norma:'NOVA',nome:'Novo Curso',cargaHoraria:'08',validadeAnos:'1',topicos:[]};S.cursos.push(n);S.cursoEd=n;CG.render();},
+  editCurso:function(i){S.cursoEd=JSON.parse(JSON.stringify(S.cursos[i]));CG.render();},
+  delCurso:function(id){if(!confirm('Excluir?'))return;S.cursos=S.cursos.filter(function(c){return c.id!==id;});salvar();CG.render();},
+  restaurarCursos:function(){if(!confirm('Restaurar 43 cursos padrão?'))return;var ids={};CURSOS_DEF.forEach(function(c){ids[c.id]=true;});S.cursos=CURSOS_DEF.concat(S.cursos.filter(function(c){return!ids[c.id];}));salvar();toast('43 cursos restaurados!');CG.render();},
+  pgCursoEd:function(){
+    var c=S.cursoEd;
+    var VALS=[['0','Sem validade'],['1','12 meses'],['2','24 meses'],['3','36 meses'],['4','48 meses'],['5','60 meses']];
+    return '<h1>Editar Curso</h1><div class="card" style="max-width:680px">'+
+    '<div class="g2" style="margin-bottom:12px">'+
+      '<div><label class="lbl">Norma</label><input class="inp" id="ce-n" value="'+esc(c.norma)+'"></div>'+
+      '<div><label class="lbl">Carga horária (h)</label><input class="inp" id="ce-ch" value="'+esc(c.cargaHoraria)+'"></div>'+
+    '</div>'+
+    '<div style="margin-bottom:12px"><label class="lbl">Nome completo</label><input class="inp" id="ce-nome" value="'+esc(c.nome)+'"></div>'+
+    '<div style="margin-bottom:14px"><label class="lbl">Validade</label><select class="sel" id="ce-val">'+
+      VALS.map(function(v){return'<option value="'+v[0]+'"'+(c.validadeAnos===v[0]?' selected':'')+'>'+v[1]+'</option>';}).join('')+
+    '</select></div>'+
+    '<div style="border-top:1px solid #eee;padding-top:12px">'+
+      '<div class="row-sb" style="margin-bottom:8px"><label class="lbl" style="margin:0">Tópicos</label>'+
+      '<button class="btn btn-s btn-sm" onclick="CG.addTopico()">+ Tópico</button></div>'+
+      (c.topicos.length===0?'<p style="color:#999;font-size:13px">Nenhum tópico.</p>':'')+
+      c.topicos.map(function(t,i){
+        return '<div class="flex" style="margin-bottom:8px;align-items:flex-start">'+
+        '<span style="min-width:20px;color:#999;font-size:12px;padding-top:8px">'+(i+1)+'.</span>'+
+        '<textarea class="ta" rows="2" style="flex:1;font-family:inherit;font-size:13px" onchange="CG.updTopico(\''+t.id+'\',this.value)">'+esc(t.texto)+'</textarea>'+
+        '<button class="btn btn-d btn-sm" style="margin-top:2px" onclick="CG.delTopico(\''+t.id+'\')">🗑</button></div>';
+      }).join('')+
+    '</div>'+
+    '<div class="flex" style="margin-top:16px"><button class="btn btn-p" onclick="CG.salvarCursoEd()">💾 Salvar</button><button class="btn btn-s" onclick="CG.cancelCursoEd()">Cancelar</button></div>'+
+    '</div>';
+  },
+  addTopico:function(){S.cursoEd.topicos.push({id:'t_'+Date.now(),texto:''});CG.render();},
+  updTopico:function(id,v){var t=S.cursoEd.topicos.find(function(x){return x.id===id;});if(t)t.texto=v;},
+  delTopico:function(id){S.cursoEd.topicos=S.cursoEd.topicos.filter(function(t){return t.id!==id;});CG.render();},
+  salvarCursoEd:function(){
+    var c=S.cursoEd;
+    c.norma=document.getElementById('ce-n').value;c.cargaHoraria=document.getElementById('ce-ch').value;
+    c.nome=document.getElementById('ce-nome').value;c.validadeAnos=document.getElementById('ce-val').value;
+    var i=S.cursos.findIndex(function(x){return x.id===c.id;});if(i>=0)S.cursos[i]=c;else S.cursos.push(c);
+    S.cursoEd=null;salvar();toast('Curso salvo!');CG.render();
+  },
+  cancelCursoEd:function(){S.cursoEd=null;CG.render();},
+
+  // ── TURMAS ──
+  pgTurmas:function(){
+    return '<div class="row-sb" style="margin-bottom:14px"><h1 style="margin:0">Turmas ('+S.turmas.length+')</h1>'+
+    '<button class="btn btn-p btn-sm" onclick="CG.addTurma()">+ Nova turma</button></div>'+
+    (S.turmas.length===0?'<div class="card"><p style="color:#999">Nenhuma turma cadastrada.</p></div>':'')+
+    S.turmas.map(function(t,i){
+      var c=S.cursos.find(function(x){return x.id===t.cursoId;});
+      var qtd=S.alunos.filter(function(a){return a.turmaId===t.id;}).length;
+      return '<div class="card" style="padding:14px;margin-bottom:10px"><div class="row-sb">'+
+      '<div><div style="font-weight:700">'+esc(t.nome||'(sem nome)')+'</div>'+
+      '<div style="font-size:12.5px;color:#444;margin-top:3px">'+(c?esc(c.norma+' — '+c.nome):'Curso não definido')+'</div>'+
+      '<div style="font-size:12px;color:#777;margin-top:4px">'+(t.data?'📅 '+fmtCur(t.data)+' ':''+(t.local?'📍 '+esc(t.local)+' ':''))+'👥 '+qtd+' aluno(s)</div></div>'+
+      '<div class="flex"><button class="btn btn-s btn-sm" onclick="CG.editTurma('+i+')">✏ Editar</button><button class="btn btn-d btn-sm" onclick="CG.delTurma(\''+t.id+'\')">🗑</button></div>'+
+      '</div></div>';
+    }).join('');
+  },
+  addTurma:function(){S.turmaEd=novaTurma();CG.render();},
+  editTurma:function(i){S.turmaEd=JSON.parse(JSON.stringify(S.turmas[i]));CG.render();},
+  delTurma:function(id){if(!confirm('Excluir turma?'))return;S.turmas=S.turmas.filter(function(t){return t.id!==id;});salvar();CG.render();},
+  pgTurmaEd:function(){
+    var t=S.turmaEd;
+    return '<h1>'+(t.nome?'Editar Turma':'Nova Turma')+'</h1><div class="card" style="max-width:600px">'+
+    '<div style="margin-bottom:12px"><label class="lbl">Nome da turma</label><input class="inp" id="te-nome" value="'+esc(t.nome)+'" placeholder="ex: Turma NR-35 Junho 2026"></div>'+
+    '<div style="margin-bottom:12px"><label class="lbl">Curso</label><select class="sel" id="te-c">'+
+      S.cursos.map(function(c){return'<option value="'+c.id+'"'+(t.cursoId===c.id?' selected':'')+'>'+esc(c.norma)+' — '+esc(c.nome)+'</option>';}).join('')+
+    '</select></div>'+
+    '<div class="g2" style="margin-bottom:12px">'+
+      '<div><label class="lbl">Data</label><input type="date" class="inp" id="te-d" value="'+t.data+'"></div>'+
+      '<div><label class="lbl">Local</label><input class="inp" id="te-l" value="'+esc(t.local)+'"></div>'+
+    '</div>'+
+    '<div style="margin-bottom:12px"><label class="lbl">ART (opcional)</label><select class="sel" id="te-a">'+
+      '<option value="">Nenhuma</option>'+
+      S.arts.map(function(a){return'<option value="'+a.id+'"'+(t.artId===a.id?' selected':'')+'>ART/RRT nº '+esc(a.numeroArt)+' — '+esc(a.responsavel||a.engenheiro||'')+'</option>';}).join('')+
+    '</select></div>'+
+    '<div style="margin-bottom:12px"><label class="lbl">Observações</label><textarea class="ta" id="te-o" rows="2">'+esc(t.observacoes)+'</textarea></div>'+
+    '<div class="flex"><button class="btn btn-p" onclick="CG.salvarTurmaEd()">💾 Salvar</button><button class="btn btn-s" onclick="CG.cancelTurmaEd()">Cancelar</button></div>'+
+    '</div>';
+  },
+  salvarTurmaEd:function(){
+    var t=S.turmaEd;
+    t.nome=document.getElementById('te-nome').value;t.cursoId=document.getElementById('te-c').value;
+    t.data=document.getElementById('te-d').value;t.local=document.getElementById('te-l').value;
+    t.artId=document.getElementById('te-a').value;t.observacoes=document.getElementById('te-o').value;
+    var i=S.turmas.findIndex(function(x){return x.id===t.id;});if(i>=0)S.turmas[i]=t;else S.turmas.push(t);
+    S.turmaEd=null;salvar();toast('Turma salva!');CG.render();
+  },
+  cancelTurmaEd:function(){S.turmaEd=null;CG.render();},
+
+  // ── ARTs ──
+  pgArts:function(){
+    return '<div class="row-sb" style="margin-bottom:14px"><h1 style="margin:0">ARTs / RRTs ('+S.arts.length+')</h1>'+
+    '<button class="btn btn-p btn-sm" onclick="CG.addArt()">+ Nova</button></div>'+
+    (S.arts.length===0?'<div class="card"><p style="color:#999">Nenhuma ART/RRT cadastrada.</p></div>':'')+
+    S.arts.map(function(a,i){
+      return '<div class="card" style="padding:12px;margin-bottom:8px"><div class="row-sb">'+
+      '<div><div style="font-weight:600">ART/RRT nº '+esc(a.numeroArt||'(sem número)')+' — '+a.ano+'</div>'+
+      '<div style="font-size:12px;color:#888;margin-top:2px">'+esc(a.responsavel||a.engenheiro||'')+' · '+esc(a.conselho||'CREA')+' '+esc(a.registro||a.crea||'')+'</div>'+
+      (a.servico?'<div style="font-size:12px;color:#aaa;margin-top:2px;font-style:italic">'+esc(a.servico)+'</div>':'')+
+      '</div>'+
+      '<div class="flex"><button class="btn btn-s btn-sm" onclick="CG.editArt('+i+')">✏</button><button class="btn btn-d btn-sm" onclick="CG.delArt(\''+a.id+'\')">🗑</button></div>'+
+      '</div></div>';
+    }).join('');
+  },
+  addArt:function(){S.artEd=novaArt();CG.render();},
+  editArt:function(i){S.artEd=JSON.parse(JSON.stringify(S.arts[i]));CG.render();},
+  delArt:function(id){if(!confirm('Excluir?'))return;S.arts=S.arts.filter(function(a){return a.id!==id;});salvar();CG.render();},
+  pgArtEd:function(){
+    var a=S.artEd;
+    var TIPOS=[['engenheiro','Engenheiro'],['tst','Técnico de Seg. do Trabalho'],['outro','Outro']];
+    var CONSELHOS=[['CREA','CREA'],['MTE','MTE'],['CRQ','CRQ'],['CFT','CFT'],['outro','Outro']];
+    return '<h1>'+(a.numeroArt?'Editar ART/RRT':'Nova ART/RRT')+'</h1><div class="card" style="max-width:560px">'+
+    '<div style="margin-bottom:12px"><label class="lbl">Tipo de responsável</label><select class="sel" id="ae-tipo">'+
+      TIPOS.map(function(t){return'<option value="'+t[0]+'"'+((a.tipo||'engenheiro')===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+
+    '</select></div>'+
+    '<div class="g2" style="margin-bottom:12px">'+
+      '<div><label class="lbl">Nome do responsável</label><input class="inp" id="ae-e" value="'+esc(a.responsavel||a.engenheiro||'')+'"></div>'+
+      '<div><label class="lbl">Conselho / Órgão</label><select class="sel" id="ae-cons">'+
+        CONSELHOS.map(function(c){return'<option value="'+c[0]+'"'+((a.conselho||'CREA')===c[0]?' selected':'')+'>'+c[1]+'</option>';}).join('')+
+      '</select></div>'+
+    '</div>'+
+    '<div style="margin-bottom:12px"><label class="lbl">Número de registro</label><input class="inp" id="ae-reg" value="'+esc(a.registro||a.crea||'')+'" placeholder="ex: 5062531291-D ou 0033374/PR"></div>'+
+    '<div class="g2" style="margin-bottom:12px">'+
+      '<div><label class="lbl">Número da ART/RRT</label><input class="inp" id="ae-n" value="'+esc(a.numeroArt)+'"></div>'+
+      '<div><label class="lbl">Ano</label><input class="inp" id="ae-a" value="'+esc(a.ano)+'"></div>'+
+    '</div>'+
+    '<div style="margin-bottom:12px"><label class="lbl">Tipo de serviço</label><input class="inp" id="ae-s" value="'+esc(a.servico)+'" placeholder="ex: NR-35 — Treinamento"></div>'+
+    '<div class="flex"><button class="btn btn-p" onclick="CG.salvarArtEd()">💾 Salvar</button><button class="btn btn-s" onclick="CG.cancelArtEd()">Cancelar</button></div>'+
+    '</div>';
+  },
+  salvarArtEd:function(){
+    var a=S.artEd;
+    a.tipo=document.getElementById('ae-tipo').value;
+    a.responsavel=document.getElementById('ae-e').value;
+    a.conselho=document.getElementById('ae-cons').value;
+    a.registro=document.getElementById('ae-reg').value;
+    a.numeroArt=document.getElementById('ae-n').value;
+    a.ano=document.getElementById('ae-a').value;
+    a.servico=document.getElementById('ae-s').value;
+    a.engenheiro=a.responsavel;a.crea=a.registro;
+    var i=S.arts.findIndex(function(x){return x.id===a.id;});if(i>=0)S.arts[i]=a;else S.arts.push(a);
+    S.artEd=null;salvar();toast('ART/RRT salva!');CG.render();
+  },
+  cancelArtEd:function(){S.artEd=null;CG.render();},
+
+  // ── INSTRUTORES ──
+  pgInstrutores:function(){
+    return '<div class="row-sb" style="margin-bottom:14px"><h1 style="margin:0">Instrutores ('+S.instrutores.length+')</h1>'+
+    '<button class="btn btn-p btn-sm" onclick="CG.addInst()">+ Novo</button></div>'+
+    (S.instrutores.length===0?'<div class="card"><p style="color:#999">Nenhum instrutor cadastrado.</p></div>':'')+
+    S.instrutores.map(function(ins,i){
+      return '<div class="card" style="padding:12px;margin-bottom:8px"><div class="row-sb">'+
+      '<div>'+(ins.assinatura?'<img src="'+ins.assinatura+'" style="height:26px;display:block;margin-bottom:4px">':'')+
+      '<div style="font-weight:600">'+esc(ins.nome||'(sem nome)')+'</div>'+
+      '<div style="font-size:12px;color:#888;margin-top:2px">'+esc(ins.cargo)+(ins.registro?' · Reg. '+esc(ins.registro):'')+' </div></div>'+
+      '<div class="flex"><button class="btn btn-s btn-sm" onclick="CG.editInst('+i+')">✏</button><button class="btn btn-d btn-sm" onclick="CG.delInst(\''+ins.id+'\')">🗑</button></div>'+
+      '</div></div>';
+    }).join('');
+  },
+  addInst:function(){S.instEd=novoInst();CG.render();},
+  editInst:function(i){S.instEd=JSON.parse(JSON.stringify(S.instrutores[i]));CG.render();},
+  delInst:function(id){if(!confirm('Excluir?'))return;S.instrutores=S.instrutores.filter(function(i){return i.id!==id;});salvar();CG.render();},
+  pgInstEd:function(){
+    var ins=S.instEd;
+    var TR=[['diaria','Por Diária'],['hora','Por Hora'],['mensal','Mensalista']];
+    var TD=[['nenhum','Sem ajuda'],['km','R$/KM'],['fixo','Valor fixo']];
+    return '<h1>'+(ins.nome?'Editar Instrutor':'Novo Instrutor')+'</h1><div class="card" style="max-width:560px">'+
+    '<div style="margin-bottom:12px"><label class="lbl">Nome completo</label><input class="inp" id="ie-n" value="'+esc(ins.nome)+'"></div>'+
+    '<div class="g2" style="margin-bottom:12px">'+
+      '<div><label class="lbl">Registro</label><input class="inp" id="ie-r" value="'+esc(ins.registro)+'"></div>'+
+      '<div><label class="lbl">Cargo</label><input class="inp" id="ie-c" value="'+esc(ins.cargo)+'"></div>'+
+    '</div>'+
+    '<div style="margin-bottom:12px"><label class="lbl">Assinatura (PNG transparente)</label>'+
+      (ins.assinatura?'<img src="'+ins.assinatura+'" style="height:38px;display:block;margin-bottom:6px">':'')+
+      '<input type="file" accept="image/png" onchange="CG.upAssInst(this)" style="font-size:12.5px"></div>'+
+    '<div class="g2" style="margin-bottom:12px">'+
+      '<div><label class="lbl">Remuneração</label><select class="sel" id="ie-rt">'+TR.map(function(t){return'<option value="'+t[0]+'"'+(ins.remuneracaoTipo===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select></div>'+
+      '<div><label class="lbl">Valor (R$)</label><input type="text" inputmode="decimal" class="inp" id="ie-vb" value="'+esc(ins.valorBase)+'" placeholder="ex: 150,00"></div>'+
+    '</div>'+
+    '<div class="g2" style="margin-bottom:14px">'+
+      '<div><label class="lbl">Deslocamento</label><select class="sel" id="ie-dt">'+TD.map(function(t){return'<option value="'+t[0]+'"'+(ins.deslocamentoTipo===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select></div>'+
+      '<div><label class="lbl">Valor desloc. (R$)</label><input type="text" inputmode="decimal" class="inp" id="ie-vd" value="'+esc(ins.valorDeslocamento)+'" placeholder="ex: 0,70 por km"></div>'+
+    '</div>'+
+    '<div class="flex"><button class="btn btn-p" onclick="CG.salvarInstEd()">💾 Salvar</button><button class="btn btn-s" onclick="CG.cancelInstEd()">Cancelar</button></div>'+
+    '</div>';
+  },
+  upAssInst:function(inp){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){S.instEd.assinatura=e.target.result;};r.readAsDataURL(f);},
+  salvarInstEd:function(){
+    var ins=S.instEd;
+    ins.nome=document.getElementById('ie-n').value;ins.registro=document.getElementById('ie-r').value;
+    ins.cargo=document.getElementById('ie-c').value;ins.remuneracaoTipo=document.getElementById('ie-rt').value;
+    ins.valorBase=document.getElementById('ie-vb').value;ins.deslocamentoTipo=document.getElementById('ie-dt').value;
+    ins.valorDeslocamento=document.getElementById('ie-vd').value;
+    var i=S.instrutores.findIndex(function(x){return x.id===ins.id;});if(i>=0)S.instrutores[i]=ins;else S.instrutores.push(ins);
+    S.instEd=null;salvar();toast('Instrutor salvo!');CG.render();
+  },
+  cancelInstEd:function(){S.instEd=null;CG.render();},
+
+  // ── PAGAMENTOS ──
+  pgHoras:function(){
+    var regs=S.regs.slice().sort(function(a,b){return(b.data||'').localeCompare(a.data||'');});
+    return '<div class="row-sb" style="margin-bottom:14px"><h1 style="margin:0">Pagamentos ('+S.regs.length+')</h1>'+
+    '<button class="btn btn-p btn-sm" onclick="CG.addReg()">+ Novo</button></div>'+
+    (S.regs.length===0?'<div class="card"><p style="color:#999">Nenhum registro.</p></div>':'')+
+    regs.map(function(reg){
+      var ins=S.instrutores.find(function(i){return i.id===reg.instrutorId;});
+      var c=calcPag(reg,ins);var vp=parseFloat(reg.valorPago)||0;var pend=Math.max(0,c.total-vp);
+      return '<div class="card" style="padding:12px;margin-bottom:8px"><div class="row-sb">'+
+      '<div><div style="font-weight:600">'+(ins?esc(ins.nome):'(removido)')+'</div>'+
+      '<div style="font-size:12px;color:#888">'+fmtCur(reg.data)+' · '+esc(reg.cidade)+(reg.local?' — '+esc(reg.local):'')+' </div>'+
+      (reg.cursoNome?'<div style="font-size:12px;color:#888;font-style:italic">'+esc(reg.cursoNome)+'</div>':'')+
+      '</div><div style="text-align:right"><div style="font-weight:700">'+R$(c.total)+'</div>'+
+      (vp>0&&vp<c.total?'<div style="font-size:12px;color:#2a7a2a">Pago: '+R$(vp)+'</div><div style="font-size:12px;font-weight:700;color:#c0392b">Saldo: '+R$(pend)+'</div>':
+      '<span style="font-size:11px;padding:2px 7px;border-radius:20px;background:'+(reg.pago?'#f0fff4':'#fff0f0')+';color:'+(reg.pago?'#2a7a2a':'#c0392b')+'">'+(reg.pago?'✓ Quitado':'Pendente')+'</span>')+
+      '</div></div>'+
+      '<div class="flex" style="margin-top:8px">'+
+      '<button class="btn btn-s btn-sm" onclick="CG.editReg(\''+reg.id+'\')">✏ Editar</button>'+
+      '<button class="btn btn-d btn-sm" onclick="CG.delReg(\''+reg.id+'\')">🗑</button>'+
+      '</div></div>';
+    }).join('');
+  },
+  addReg:function(){S.regEd=novoReg();CG.render();},
+  editReg:function(id){var r=S.regs.find(function(r){return r.id===id;});S.regEd=JSON.parse(JSON.stringify(r));CG.render();},
+  delReg:function(id){if(!confirm('Excluir?'))return;S.regs=S.regs.filter(function(r){return r.id!==id;});salvar();CG.render();},
+  pgRegEd:function(){
+    var reg=S.regEd;var ins=S.instrutores.find(function(i){return i.id===reg.instrutorId;});
+    var c=calcPag(reg,ins);var vp=parseFloat(reg.valorPago)||0;var pend=Math.max(0,c.total-vp);
+    return '<h1>Registro de Pagamento</h1><div class="card" style="max-width:600px">'+
+    '<div style="margin-bottom:12px"><label class="lbl">Instrutor</label>'+
+    '<select class="sel" id="re-i" style="font-size:14px;padding:10px" onchange="CG.updRegInst()">'+
+    '<option value="">Selecione...</option>'+S.instrutores.map(function(i){return'<option value="'+i.id+'"'+(reg.instrutorId===i.id?' selected':'')+'>'+esc(i.nome)+'</option>';}).join('')+
+    '</select></div>'+
+    '<div class="g2" style="margin-bottom:12px">'+
+    '<div><label class="lbl">Data</label><input type="date" class="inp" id="re-d" value="'+reg.data+'"></div>'+
+    '<div><label class="lbl">Cidade</label><input class="inp" id="re-ci" value="'+esc(reg.cidade)+'"></div>'+
+    '</div>'+
+    '<div class="g2" style="margin-bottom:12px">'+
+    '<div><label class="lbl">Local/empresa</label><input class="inp" id="re-l" value="'+esc(reg.local)+'"></div>'+
+    '<div><label class="lbl">KM</label><input type="number" class="inp" id="re-km" value="'+esc(reg.distanciaKm)+'"></div>'+
+    '</div>'+
+    '<div style="margin-bottom:12px"><label class="lbl">Curso/atividade</label><input class="inp" id="re-cu" value="'+esc(reg.cursoNome)+'"></div>'+
+    '<div class="g2" style="margin-bottom:12px">'+
+    '<div><label class="lbl">Início</label><input type="time" class="inp" id="re-hi" value="'+reg.horaInicio+'"></div>'+
+    '<div><label class="lbl">Término</label><input type="time" class="inp" id="re-hf" value="'+reg.horaFim+'"></div>'+
+    '</div>'+
+    (ins?'<div style="padding:12px;background:#f0f4ee;border-radius:7px;margin-bottom:12px;font-size:13px">'+
+    (ins.remuneracaoTipo==='diaria'?'Diária: <b>'+R$(c.vt)+'</b>':ins.remuneracaoTipo==='hora'?c.horas.toFixed(1)+'h × '+R$(parseFloat(ins.valorBase)||0)+'/h = <b>'+R$(c.vt)+'</b>':'')+
+    (c.vd>0?'<br>Deslocamento: <b>'+R$(c.vd)+'</b>':'')+
+    '<div style="font-size:15px;font-weight:700;color:#5a6e52;margin-top:4px">Total: '+R$(c.total)+'</div></div>':'')+
+    '<div class="g2" style="margin-bottom:12px">'+
+    '<div><label class="lbl">Valor pago (R$)</label><input type="text" inputmode="decimal" class="inp" id="re-vp" value="'+esc(reg.valorPago)+'" placeholder="ex: 250,00"></div>'+
+    (c.total>0?'<div style="display:flex;align-items:flex-end"><div style="padding:10px;border-radius:7px;background:'+(pend<=0?'#f0fff4':'#fff0f0')+';border:1px solid '+(pend<=0?'#9ae6b4':'#feb2b2')+';width:100%">'+
+    '<div style="font-size:11px;color:#777">Saldo</div><div style="font-size:15px;font-weight:700;color:'+(pend<=0?'#2a7a2a':'#c0392b')+'">'+(pend<=0?'✓ Quitado':R$(pend))+'</div></div></div>':'')+
+    '</div>'+
+    '<div class="flex"><button class="btn btn-p" onclick="CG.salvarRegEd()">💾 Salvar</button><button class="btn btn-s" onclick="CG.cancelRegEd()">Cancelar</button></div>'+
+    '</div>';
+  },
+  updRegInst:function(){S.regEd.instrutorId=document.getElementById('re-i').value;CG.render();},
+  salvarRegEd:function(){
+    var reg=S.regEd;
+    reg.instrutorId=document.getElementById('re-i').value;reg.data=document.getElementById('re-d').value;
+    reg.cidade=document.getElementById('re-ci').value;reg.local=document.getElementById('re-l').value;
+    reg.distanciaKm=document.getElementById('re-km').value;reg.cursoNome=document.getElementById('re-cu').value;
+    reg.horaInicio=document.getElementById('re-hi').value;reg.horaFim=document.getElementById('re-hf').value;
+    reg.valorPago=document.getElementById('re-vp').value;
+    if(!reg.instrutorId||!reg.data){toast('Preencha instrutor e data.');return;}
+    var ins=S.instrutores.find(function(i){return i.id===reg.instrutorId;});
+    reg.pago=(parseMoeda(reg.valorPago))>=(calcPag(reg,ins).total-0.01);
+    var i=S.regs.findIndex(function(r){return r.id===reg.id;});if(i>=0)S.regs[i]=reg;else S.regs.push(reg);
+    S.regEd=null;salvar();toast('Registro salvo!');CG.render();
+  },
+  cancelRegEd:function(){S.regEd=null;CG.render();},
+
+  // ── EMITIR ──
+  pgEmitir:function(){
+    var f=S.alunoForm;
+    var cs=S.cursos.find(function(c){return c.id===f.cursoId;})||S.cursos[0]||{topicos:[],cargaHoraria:'',validadeAnos:'1'};
+    var TE=[['formacao','Treinamento Inicial'],['reciclagem','Reciclagem'],['mudanca_empresa','Mudança de Empresa'],['mudanca_funcao','Mudança de Função'],['retorno_afastamento','Retorno de Afastamento'],['atualizacao_tecnica','Atualização Técnica']];
+    var TV=[['','Padrão ('+labelVal(cs.validadeAnos||'1')+')'],['0','Sem validade'],['1','12 meses'],['2','24 meses'],['3','36 meses'],['4','48 meses'],['5','60 meses']];
+    return '<h1 style="max-width:680px">'+(S.editIdx!==null?'Editar Certificado':'Emitir Certificado')+'</h1>'+
+    '<div class="card" style="max-width:680px">'+
+    '<div style="margin-bottom:12px"><label class="lbl">Curso</label>'+
+    '<select class="sel" id="ef-c" style="font-size:14px;padding:10px" onchange="CG.updCursoEmitir()">'+
+      S.cursos.map(function(c){return'<option value="'+c.id+'"'+(f.cursoId===c.id?' selected':'')+'>'+esc(c.norma)+' — '+esc(c.nome)+'</option>';}).join('')+
+    '</select><div style="font-size:12px;color:#888;margin-top:4px">Carga horária: '+cs.cargaHoraria+'h</div></div>'+
+    (S.turmas.length>0?'<div style="margin-bottom:12px"><label class="lbl">Turma (opcional)</label><select class="sel" id="ef-t">'+
+      '<option value="">Sem turma</option>'+S.turmas.map(function(t){return'<option value="'+t.id+'"'+(f.turmaId===t.id?' selected':'')+'>'+esc(t.nome)+'</option>';}).join('')+
+    '</select></div>':'')+
+    '<div class="g2" style="margin-bottom:12px">'+
+    '<div><label class="lbl">Tipo de emissão</label><select class="sel" id="ef-te">'+TE.map(function(t){return'<option value="'+t[0]+'"'+(f.tipoEmissao===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select></div>'+
+    '<div><label class="lbl">Validade</label><select class="sel" id="ef-v">'+TV.map(function(t){return'<option value="'+t[0]+'"'+(f.validadeAnos===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select></div>'+
+    '</div>'+
+    '<div style="margin-bottom:12px"><label class="lbl">ART/RRT (opcional)</label><select class="sel" id="ef-a">'+
+    '<option value="">Nenhuma</option>'+S.arts.map(function(a){return'<option value="'+a.id+'"'+(f.artId===a.id?' selected':'')+'>ART/RRT nº '+esc(a.numeroArt)+' — '+esc(a.responsavel||a.engenheiro||'')+'</option>';}).join('')+
+    '</select></div>'+
+    (S.instrutores.length>0?'<div style="margin-bottom:12px"><label class="lbl">Instrutores que assinam</label>'+
+    '<div style="border:1px solid #eee;border-radius:7px;padding:10px;max-height:140px;overflow-y:auto">'+
+      S.instrutores.map(function(i){return'<label style="display:flex;gap:8px;align-items:center;font-size:13px;cursor:pointer;margin-bottom:5px">'+
+        '<input type="checkbox" '+(f.instrutoresIds.indexOf(i.id)>=0?'checked':'')+' onchange="CG.togInst(\''+i.id+'\',this.checked)"> '+esc(i.nome)+'</label>';}).join('')+
+    '</div></div>':'<div style="margin-bottom:12px;font-size:12px;color:#999;padding:10px;border:1px dashed #ddd;border-radius:7px">Nenhum instrutor cadastrado. Usará os dados da empresa.</div>')+
+    '<div class="g2" style="margin-bottom:12px">'+
+    '<div><label class="lbl">Nome do aluno</label><input class="inp" id="ef-n" value="'+esc(f.nome)+'"></div>'+
+    '<div><label class="lbl">CPF</label><input class="inp" id="ef-cpf" value="'+esc(f.cpf)+'" placeholder="000.000.000-00"></div>'+
+    '</div>'+
+    // data principal + local + aproveitamento
+    '<div class="g3" style="margin-bottom:12px">'+
+    '<div><label class="lbl">Data principal</label><input type="date" class="inp" id="ef-d" value="'+f.dataRealizacao+'"></div>'+
+    '<div><label class="lbl">Local</label><input class="inp" id="ef-l" value="'+esc(f.local)+'"></div>'+
+    '<div><label class="lbl">Aproveitamento (%)</label><input type="number" class="inp" id="ef-ap" min="0" max="100" value="'+esc(f.aproveitamento)+'"></div>'+
+    '</div>'+
+    // datas adicionais
+    '<div style="margin-bottom:12px"><label class="lbl">Datas adicionais (cursos de múltiplos dias)</label>'+
+    '<div id="datas-add-list">'+
+      (f.datasAdicionais||[]).map(function(d,i){
+        return '<div class="flex" style="margin-bottom:6px">'+
+        '<input type="date" class="inp" style="flex:1" value="'+d+'" onchange="CG.updDataAdd('+i+',this.value)">'+
+        '<button class="btn btn-d btn-sm" onclick="CG.rmDataAdd('+i+')">🗑</button></div>';
+      }).join('')+
+    '</div>'+
+    '<button class="btn btn-s btn-sm" onclick="CG.addDataAdd()">+ Adicionar data</button></div>'+
+    // carga horária dividida
+    '<div class="g2" style="margin-bottom:12px">'+
+    '<div><label class="lbl">C.H. Teórica (h) — opcional</label><input type="number" class="inp" id="ef-cht" value="'+esc(f.chTeorica||'')+'" placeholder="ex: 4">'+
+    '<div style="font-size:11px;color:#999;margin-top:3px">Deixe vazio para usar a carga padrão do curso</div></div>'+
+    '<div><label class="lbl">C.H. Prática (h) — opcional</label><input type="number" class="inp" id="ef-chp" value="'+esc(f.chPratica||'')+'" placeholder="ex: 4"></div>'+
+    '</div>'+
+    // tópicos
+    (cs.topicos.length>0?'<div style="border-top:1px solid #eee;padding-top:12px;margin-bottom:12px">'+
+    '<div class="row-sb" style="margin-bottom:8px;flex-wrap:wrap;gap:6px">'+
+    '<label class="lbl" style="margin:0">Conteúdo programático ('+f.topicosSelecionados.length+' selecionado(s))</label>'+
+    '<div class="flex" style="gap:4px">'+
+    '<button style="font-size:11.5px;background:none;border:none;color:#5a6e52;cursor:pointer;font-weight:600" onclick="CG.selTodosTops()">Todos</button>'+
+    '<span style="color:#ccc">|</span>'+
+    '<button style="font-size:11.5px;background:none;border:none;color:#999;cursor:pointer" onclick="CG.limTops()">Limpar</button>'+
+    '</div></div>'+
+    '<div style="max-height:220px;overflow-y:auto;border:1px solid #eee;border-radius:7px;padding:10px">'+
+      cs.topicos.map(function(t,i){
+        return '<label style="display:flex;gap:8px;align-items:flex-start;font-size:12.5px;cursor:pointer;padding:3px;margin-bottom:3px">'+
+        '<input type="checkbox" '+(f.topicosSelecionados.indexOf(t.id)>=0?'checked':'')+' onchange="CG.togTop(\''+t.id+'\',this.checked)" style="margin-top:2px;width:15px;height:15px">'+
+        '<span><b>'+(i+1)+'.</b> '+esc(t.texto)+'</span></label>';
+      }).join('')+
+    '</div></div>':'')+
+    '<div class="flex">'+
+    '<button class="btn btn-p" onclick="CG.salvarAluno()">💾 '+(S.editIdx!==null?'Atualizar':'Salvar')+'</button>'+
+    (f.nome&&f.cpf?'<button class="btn btn-s" onclick="CG.abrirPrev()">👁 Pré-visualizar</button>':'')+
+    '</div></div>';
+  },
+  updCursoEmitir:function(){S.alunoForm.cursoId=document.getElementById('ef-c').value;S.alunoForm.topicosSelecionados=[];CG.render();},
+  togInst:function(id,chk){
+    if(!S.alunoForm.instrutoresIds)S.alunoForm.instrutoresIds=[];
+    var s=S.alunoForm.instrutoresIds;
+    var i=s.indexOf(id);
+    if(chk&&i<0)s.push(id);
+    else if(!chk&&i>=0)s.splice(i,1);
+  },
+  togTop:function(id,chk){var s=S.alunoForm.topicosSelecionados;var i=s.indexOf(id);if(chk&&i<0)s.push(id);else if(!chk&&i>=0)s.splice(i,1);},
+  selTodosTops:function(){var c=S.cursos.find(function(x){return x.id===S.alunoForm.cursoId;});S.alunoForm.topicosSelecionados=c?c.topicos.map(function(t){return t.id;}):[];CG.render();},
+  limTops:function(){S.alunoForm.topicosSelecionados=[];CG.render();},
+  addDataAdd:function(){if(!S.alunoForm.datasAdicionais)S.alunoForm.datasAdicionais=[];S.alunoForm.datasAdicionais.push('');CG.render();},
+  updDataAdd:function(i,v){if(!S.alunoForm.datasAdicionais)S.alunoForm.datasAdicionais=[];S.alunoForm.datasAdicionais[i]=v;},
+  rmDataAdd:function(i){S.alunoForm.datasAdicionais.splice(i,1);CG.render();},
+  _coletarForm:function(){
+    var f=S.alunoForm;
+    f.nome=(document.getElementById('ef-n')||{value:f.nome}).value.trim()||f.nome;
+    f.cpf=(document.getElementById('ef-cpf')||{value:f.cpf}).value.trim()||f.cpf;
+    f.dataRealizacao=(document.getElementById('ef-d')||{value:f.dataRealizacao}).value||f.dataRealizacao;
+    f.local=(document.getElementById('ef-l')||{value:f.local}).value||f.local;
+    f.aproveitamento=(document.getElementById('ef-ap')||{value:f.aproveitamento}).value||f.aproveitamento;
+    f.tipoEmissao=(document.getElementById('ef-te')||{value:f.tipoEmissao}).value||f.tipoEmissao;
+    f.validadeAnos=(document.getElementById('ef-v')||{value:f.validadeAnos}).value;
+    f.artId=(document.getElementById('ef-a')||{value:f.artId}).value||'';
+    f.cursoId=(document.getElementById('ef-c')||{value:f.cursoId}).value||f.cursoId;
+    f.chTeorica=(document.getElementById('ef-cht')||{value:''}).value||'';
+    f.chPratica=(document.getElementById('ef-chp')||{value:''}).value||'';
+    var et=document.getElementById('ef-t');if(et)f.turmaId=et.value;
+  },
+  salvarAluno:function(){
+    // coleta todos os campos manualmente com fallback seguro
+    var f=S.alunoForm;
+    var gv=function(id,def){var el=document.getElementById(id);return el?el.value:(def||'');};
+    f.nome=gv('ef-n','').trim();
+    f.cpf=gv('ef-cpf','').trim();
+    f.dataRealizacao=gv('ef-d','');
+    f.local=gv('ef-l','');
+    f.aproveitamento=gv('ef-ap','100');
+    f.tipoEmissao=gv('ef-te','formacao');
+    f.validadeAnos=gv('ef-v','');
+    f.artId=gv('ef-a','');
+    f.cursoId=gv('ef-c',f.cursoId);
+    f.chTeorica=gv('ef-cht','');
+    f.chPratica=gv('ef-chp','');
+    var et=document.getElementById('ef-t');if(et)f.turmaId=et.value;
+    if(!f.nome||!f.cpf||!f.dataRealizacao){toast('Preencha nome, CPF e data.');return;}
+    if(S.editIdx!==null){
+      var certId=f.certificadoId||gerarId(S.cursos.find(function(x){return x.id===f.cursoId;}),S.seq,f.dataRealizacao.slice(0,4));
+      if(!f.certificadoId)S.seq++;
+      S.alunos[S.editIdx]=JSON.parse(JSON.stringify(f));
+      S.alunos[S.editIdx].certificadoId=certId;
+      S.editIdx=null;
+    } else {
+      var curso2=S.cursos.find(function(x){return x.id===f.cursoId;});
+      var certId2=gerarId(curso2,S.seq,f.dataRealizacao.slice(0,4));
+      S.seq++;
+      var novo=JSON.parse(JSON.stringify(f));
+      novo.certificadoId=certId2;
+      S.alunos.push(novo);
+    }
+    S.alunoForm=novoAluno();
+    salvar();
+    toast('Aluno salvo com sucesso!');
+    CG.render();
+  },
+  abrirPrev:function(){
+    CG._coletarForm();var f=S.alunoForm;
+    var curso=S.cursos.find(function(x){return x.id===f.cursoId;});
+    var certId=f.certificadoId||gerarId(curso,S.seq,'PREV'+new Date().getFullYear());
+    S.certPrev=Object.assign({},f,{certificadoId:certId});CG.ir('preview');
+  },
+
+  // ── IMPORTAR ──
+  pgImportar:function(){
+    return '<div class="row-sb" style="margin-bottom:14px;flex-wrap:wrap;gap:10px"><h1 style="margin:0">Importar Turma</h1>'+
+    '<button class="btn btn-s btn-sm" onclick="CG.baixarModelo()">⬇ Baixar modelo CSV</button></div>'+
+    '<div class="card" style="margin-bottom:12px"><div class="g2">'+
+    '<div><label class="lbl">Curso padrão</label><select class="sel" id="im-c">'+S.cursos.map(function(c){return'<option value="'+c.id+'">'+esc(c.norma)+' — '+esc(c.nome)+'</option>';}).join('')+'</select></div>'+
+    '<div><label class="lbl">Data padrão</label><input type="date" class="inp" id="im-d"></div>'+
+    '<div><label class="lbl">Local padrão</label><input class="inp" id="im-l" value="Curitiba"></div>'+
+    '<div><label class="lbl">Aproveitamento (%)</label><input type="number" class="inp" id="im-a" value="100"></div>'+
+    '<div><label class="lbl">ART</label><select class="sel" id="im-art"><option value="">Nenhuma</option>'+S.arts.map(function(a){return'<option value="'+a.id+'">ART/RRT nº '+esc(a.numeroArt)+'</option>';}).join('')+'</select></div>'+
+    (S.turmas.length>0?'<div><label class="lbl">Vincular turma</label><select class="sel" id="im-t"><option value="">Sem turma</option>'+S.turmas.map(function(t){return'<option value="'+t.id+'">'+esc(t.nome)+'</option>';}).join('')+'</select></div>':'')+
+    '</div></div>'+
+    '<div class="card" style="margin-bottom:12px">'+
+    '<label class="lbl">Cole aqui (Excel/Sheets) ou envie CSV</label>'+
+    '<textarea class="ta" id="im-txt" rows="7" style="margin:8px 0;font-size:13px" placeholder="Nome&#9;CPF&#9;Data&#9;Local&#9;Aproveitamento" oninput="CG.processarImp()"></textarea>'+
+    '<label class="btn btn-s btn-sm" style="cursor:pointer">📁 Enviar CSV<input type="file" accept=".csv,.txt" style="display:none" onchange="CG.lerCSV(this)"></label>'+
+    '<div id="im-err"></div></div>'+
+    '<div id="im-prev"></div>';
+  },
+  lerCSV:function(inp){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){document.getElementById('im-txt').value=e.target.result;CG.processarImp();};r.readAsText(f,'UTF-8');},
+  processarImp:function(){
+    var txt=document.getElementById('im-txt')?document.getElementById('im-txt').value:'';
+    var cPad=document.getElementById('im-c')?document.getElementById('im-c').value:S.cursos[0].id;
+    var dPad=document.getElementById('im-d')?document.getElementById('im-d').value:'';
+    var lPad=document.getElementById('im-l')?document.getElementById('im-l').value:'';
+    var aPad=document.getElementById('im-a')?document.getElementById('im-a').value:'100';
+    var artPad=document.getElementById('im-art')?document.getElementById('im-art').value:'';
+    var turPad=document.getElementById('im-t')?document.getElementById('im-t').value:'';
+    var linhas=txt.split('\n').map(function(l){return l.trim();}).filter(function(l){return l;});
+    if(!linhas.length){document.getElementById('im-prev').innerHTML='';return;}
+    var sep=linhas[0].indexOf('\t')>=0?'\t':linhas[0].indexOf(';')>=0?';':',';
+    function nH(h){var s=h.toLowerCase().trim();if(s.indexOf('nome')>=0)return'nome';if(s.indexOf('cpf')>=0)return'cpf';if(s.indexOf('data')>=0)return'data';if(s.indexOf('local')>=0)return'local';if(s.indexOf('aproveit')>=0||s.indexOf('%')>=0)return'aprov';return null;}
+    var cab=linhas[0].split(sep).map(function(c){return c.trim();}).map(nH);
+    var temCab=cab.filter(Boolean).length>=2;
+    var dados=temCab?linhas.slice(1):linhas;var res=[];
+    dados.forEach(function(ln){
+      var f=ln.split(sep).map(function(c){return c.trim();});if(!f.length||(f.length===1&&!f[0]))return;
+      var al={nome:'',cpf:'',cursoId:cPad,dataRealizacao:dPad,datasAdicionais:[],chTeorica:'',chPratica:'',local:lPad,aproveitamento:aPad,topicosSelecionados:[],tipoEmissao:'formacao',validadeAnos:'',artId:artPad,turmaId:turPad,certificadoId:'',instrutoresIds:[],foto:null};
+      if(temCab){cab.forEach(function(c,i){var v=f[i]||'';if(c==='nome')al.nome=v;else if(c==='cpf')al.cpf=v;else if(c==='data')al.dataRealizacao=cvtD(v)||dPad;else if(c==='local')al.local=v||lPad;else if(c==='aprov')al.aproveitamento=v.replace('%','')||aPad;});}
+      else{al.nome=f[0]||'';al.cpf=f[1]||'';if(f[2])al.dataRealizacao=cvtD(f[2])||dPad;if(f[3])al.local=f[3];if(f[4])al.aproveitamento=f[4].replace('%','');}
+      if(al.nome)res.push(al);
+    });
+    var err=document.getElementById('im-err');var pv=document.getElementById('im-prev');
+    if(!res.length){err.innerHTML='<div style="padding:10px;background:#fff0f0;border-radius:7px;color:#c0392b;font-size:12.5px;margin-top:8px">⚠️ Nenhum aluno identificado.</div>';pv.innerHTML='';return;}
+    err.innerHTML='';window._impPrev=res;
+    pv.innerHTML='<div class="card"><div class="row-sb" style="margin-bottom:10px;flex-wrap:wrap;gap:8px"><b>'+res.length+' aluno(s) para importar</b>'+
+    '<button class="btn btn-p btn-sm" onclick="CG.confirmarImp()">✓ Importar '+res.length+'</button></div>'+
+    '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr>'+
+    ['Nome','CPF','Data','Local','Aprov.'].map(function(h){return'<th style="text-align:left;padding:7px 10px;background:#f5f5f0;border-bottom:1px solid #e0e0e0">'+h+'</th>';}).join('')+
+    '</tr></thead><tbody>'+res.map(function(a){return'<tr style="border-bottom:1px solid #f0f0f0">'+
+    '<td style="padding:5px 10px">'+esc(a.nome)+'</td><td style="padding:5px 10px">'+esc(a.cpf)+'</td>'+
+    '<td style="padding:5px 10px">'+fmtCur(a.dataRealizacao)+'</td><td style="padding:5px 10px">'+esc(a.local)+'</td>'+
+    '<td style="padding:5px 10px">'+a.aproveitamento+'%</td></tr>';}).join('')+
+    '</tbody></table></div></div>';
+  },
+  confirmarImp:function(){
+    var res=window._impPrev||[];var s=S.seq;
+    var comId=res.map(function(a){var c=S.cursos.find(function(x){return x.id===a.cursoId;});var ano=a.dataRealizacao?a.dataRealizacao.slice(0,4):String(new Date().getFullYear());return Object.assign({},a,{certificadoId:gerarId(c,s++,ano)});});
+    S.seq=s;comId.forEach(function(a){S.alunos.push(a);});salvar();toast(comId.length+' aluno(s) importado(s)!');CG.ir('alunos');
+  },
+
+  // ── ALUNOS ──
+  pgAlunos:function(){
+    var filt=S.alunos.filter(function(a){
+      var c=S.cursos.find(function(x){return x.id===a.cursoId;});var vf=a.validadeAnos||(c?c.validadeAnos:'1');var st=statusVal(a.dataRealizacao,vf);
+      var b=S.fB.toLowerCase();
+      return(!b||a.nome.toLowerCase().indexOf(b)>=0||a.cpf.indexOf(b)>=0||(a.certificadoId||'').toLowerCase().indexOf(b)>=0)&&(!S.fC||a.cursoId===S.fC)&&(!S.fT||a.turmaId===S.fT)&&(!S.fS||st===S.fS);
+    });
+    return '<div class="row-sb" style="margin-bottom:14px;flex-wrap:wrap;gap:10px">'+
+    '<div><h1 style="margin:0">Alunos / Certificados ('+S.alunos.length+')</h1><p style="font-size:12px;color:#777;margin-top:3px">'+filt.length+' exibido(s)</p></div>'+
+    (S.alunos.length>0?'<div class="flex"><button class="btn btn-s btn-sm" onclick="CG.lotePDF()">🖨 PDF lote</button><button class="btn btn-s btn-sm" onclick="CG.expWord()">📄 Word</button><button class="btn btn-s btn-sm" onclick="CG.expCSV()">📊 CSV</button><button class="btn btn-s btn-sm" onclick="CG.expPresenca()">📋 Presença</button></div>':'')+
+    '</div>'+
+    '<div class="card" style="margin-bottom:12px"><div class="g4">'+
+    '<div><label class="lbl">Buscar</label><input class="inp" value="'+esc(S.fB)+'" placeholder="Nome, CPF ou código..." oninput="S.fB=this.value;CG.render()"></div>'+
+    '<div><label class="lbl">Curso</label><select class="sel" onchange="S.fC=this.value;CG.render()"><option value="">Todos</option>'+S.cursos.map(function(c){return'<option value="'+c.id+'"'+(S.fC===c.id?' selected':'')+'>'+esc(c.norma)+'</option>';}).join('')+'</select></div>'+
+    (S.turmas.length>0?'<div><label class="lbl">Turma</label><select class="sel" onchange="S.fT=this.value;CG.render()"><option value="">Todas</option>'+S.turmas.map(function(t){return'<option value="'+t.id+'"'+(S.fT===t.id?' selected':'')+'>'+esc(t.nome)+'</option>';}).join('')+'</select></div>':'<div></div>')+
+    '<div><label class="lbl">Status</label><select class="sel" onchange="S.fS=this.value;CG.render()"><option value="">Todos</option><option value="valido"'+(S.fS==='valido'?' selected':'')+'>✅ Válido</option><option value="vencendo"'+(S.fS==='vencendo'?' selected':'')+'>⚠️ Vencendo</option><option value="vencido"'+(S.fS==='vencido'?' selected':'')+'>⛔ Vencido</option></select></div>'+
+    '</div></div>'+
+    (filt.length===0?'<div class="card"><p style="color:#999">'+(S.alunos.length===0?'Nenhum certificado emitido.':'Nenhum resultado.')+'</p></div>':'')+
+    filt.slice().reverse().map(function(aluno){
+      var idx=S.alunos.indexOf(aluno);
+      var curso=S.cursos.find(function(c){return c.id===aluno.cursoId;});
+      var vf=aluno.validadeAnos||(curso?curso.validadeAnos:'1');
+      var st=statusVal(aluno.dataRealizacao,vf);
+      var sm=STM[st]||STM.indeterminado;
+      var turma=S.turmas.find(function(t){return t.id===aluno.turmaId;});
+      var cod=gerarCodVerif(aluno.certificadoId);
+      var outrosCerts=S.alunos.filter(function(a,i){return a.cpf===aluno.cpf&&i!==idx;});
+      return '<div class="card" style="padding:12px;margin-bottom:8px;border-left:3px solid '+sm.bc+'">'+
+      '<div class="row-sb"><div style="flex:1">'+
+      '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<span style="font-weight:700;font-size:14px">'+esc(aluno.nome)+'</span>'+
+      '<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:'+sm.cl+';color:'+sm.tc+';border:1px solid '+sm.bc+'">'+sm.lbl+'</span>'+
+      (outrosCerts.length>0?'<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:#e8f4fd;color:#185fa5;border:1px solid #b5d4f4">+'+outrosCerts.length+' cert.</span>':'')+
+      '</div>'+
+      '<div style="font-size:12px;color:#888;margin-top:2px">CPF: '+esc(aluno.cpf)+'</div>'+
+      '<div style="font-size:12.5px;font-weight:600;color:#444;margin-top:4px">'+(curso?esc(curso.norma+' — '+curso.nome):'Curso removido')+'</div>'+
+      '<div style="font-size:12px;color:#777;margin-top:3px;display:flex;flex-wrap:wrap;gap:10px">'+
+      '<span>📅 '+fmtDatas(aluno.dataRealizacao,aluno.datasAdicionais)+'</span>'+
+      '<span>📍 '+esc(aluno.local)+'</span>'+
+      '<span>✔ '+aluno.aproveitamento+'%</span>'+
+      ((aluno.chTeorica||aluno.chPratica)?'<span>⏱ '+fmtCH(curso,aluno)+'</span>':'')+
+      (st!=='indeterminado'?'<span>⏳ '+calcVenc(aluno.dataRealizacao,vf)+'</span>':'')+
+      (turma?'<span>👥 '+esc(turma.nome)+'</span>':'')+
+      '</div>'+
+      (aluno.certificadoId?'<div style="font-size:10.5px;color:#aaa;margin-top:3px;font-family:monospace">Cód: '+esc(aluno.certificadoId)+' | Verif: '+cod+'</div>':'')+
+      (outrosCerts.length>0?'<div style="margin-top:6px;padding:6px 8px;background:#f0f4ee;border-radius:6px;font-size:11px;color:#444"><b>Outros certificados deste CPF:</b><br>'+
+      outrosCerts.map(function(a){
+        var c2=S.cursos.find(function(x){return x.id===a.cursoId;});
+        var vf2=a.validadeAnos||(c2?c2.validadeAnos:'1');var st2=statusVal(a.dataRealizacao,vf2);var sm2=STM[st2]||STM.indeterminado;var idx2=S.alunos.indexOf(a);
+        return '<span style="display:inline-flex;align-items:center;gap:4px;margin-top:3px;margin-right:6px;padding:2px 7px;border-radius:20px;background:'+sm2.cl+';color:'+sm2.tc+';border:1px solid '+sm2.bc+';font-size:10px;cursor:pointer" onclick="CG.verCert('+idx2+')">'+(c2?esc(c2.norma):'?')+' · '+fmtDatas(a.dataRealizacao,a.datasAdicionais)+' 👁</span>';
+      }).join('')+'</div>':'')+
+      '</div>'+
+      '<div class="flex" style="align-items:flex-start;flex-wrap:wrap">'+
+      '<button class="btn btn-s btn-sm" onclick="CG.verCert('+idx+')">👁 Ver</button>'+
+      '<button class="btn btn-s btn-sm" onclick="CG.verCart('+idx+')">🪪 Cart.</button>'+
+      '<button class="btn btn-s btn-sm" onclick="CG.editAluno('+idx+')">✏ Editar</button>'+
+      '<button class="btn btn-d btn-sm" onclick="CG.delAluno('+idx+')">🗑</button>'+
+      '</div></div></div>';
+    }).join('');
+  },
+  editAluno:function(idx){S.alunoForm=Object.assign({},S.alunos[idx]);S.editIdx=idx;CG.ir('emitir');},
+  delAluno:function(idx){if(!confirm('Excluir?'))return;S.alunos.splice(idx,1);salvar();CG.render();},
+  verCert:function(idx){S.certPrev=Object.assign({},S.alunos[idx]);CG.ir('preview');},
+  verCart:function(idx){S.cartPrev=Object.assign({},S.alunos[idx]);S._cartEdit=null;CG.ir('carteirinha');},
+
+  // ── PREVIEW ──
+  pgPreview:function(){
+    var al=S.certPrev;if(!al)return'<button class="btn btn-s" onclick="CG.ir(\'alunos\')">← Voltar</button>';
+    var curso=S.cursos.find(function(c){return c.id===al.cursoId;});
+    if(!curso)return'<button class="btn btn-s" onclick="CG.ir(\'alunos\')">← Voltar</button><p style="color:#999;margin-top:14px">Curso não encontrado.</p>';
+    var cor=S.empresa.corDestaque||'#5a6e52';
+    var topSel=curso.topicos.filter(function(t){return al.topicosSelecionados.indexOf(t.id)>=0;});
+    var vf=al.validadeAnos||curso.validadeAnos||'1';var sv=!parseInt(vf,10);
+    var art=S.arts.find(function(a){return a.id===al.artId;});
+    var instSel=(al.instrutoresIds||[]).map(function(id){return S.instrutores.find(function(i){return i.id===id;});}).filter(Boolean);
+    var cod=gerarCodVerif(al.certificadoId);
+    var n=topSel.length;var fs=13,lh=1.85,gap=10,cols=1;
+    if(n>10&&n<=16){fs=11;lh=1.6;gap=8;}else if(n>16){fs=9.5;lh=1.35;gap=5;cols=2;}
+
+    setTimeout(function(){
+      gerarQR('CERTGEN|'+al.certificadoId+'|'+cod,80).then(function(url){
+        var el=document.getElementById('pv-qr');
+        if(el&&url)el.innerHTML='<img src="'+url+'" style="width:52px;height:52px"><div style="font-size:7px;color:#888;margin-top:2px">Verif: '+cod+'</div>';
+      });
+    },100);
+
+    function colAss(nome,cargo,registro,ass){
+      return '<div style="text-align:center;flex:1;">'+
+        (ass?'<div style="height:34px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:3px;"><img src="'+ass+'" style="max-height:34px;max-width:110px;object-fit:contain;"></div>':'<div style="height:34px;"></div>')+
+        '<div style="border-top:1px solid #555;width:68%;margin:0 auto;"></div>'+
+        '<div style="font-size:9px;margin:4px 0 2px;letter-spacing:.5px;color:#555;text-transform:uppercase;">Instrutor / Técnico Responsável</div>'+
+        '<div style="font-size:10px;font-weight:600;margin:1px 0;">'+esc(nome)+'</div>'+
+        '<div style="font-size:9px;color:#666;">'+esc(cargo)+'</div>'+
+        (registro?'<div style="font-size:9px;color:#666;">'+esc(registro)+'</div>':'')+
+      '</div>';
+    }
+    var assCols=instSel.length>0
+      ?instSel.map(function(i){return colAss(i.nome,TIPL[i.tipo]||i.cargo||'',i.registro,i.assinatura);}).join('')
+      :colAss(S.empresa.nomeInstrutor,S.empresa.cargoInstrutor,S.empresa.registro,S.empresa.assinatura);
+
+    return '<div class="row-sb" style="margin-bottom:12px;flex-wrap:wrap;gap:10px">'+
+    '<div class="flex"><button class="btn btn-s btn-sm" onclick="CG.ir(\'alunos\')">← Voltar</button><h1 style="margin:0;font-size:17px">'+esc(al.nome)+'</h1></div>'+
+    '<div class="flex"><button class="btn btn-p" onclick="CG.imprimirPDF()">🖨 Imprimir / PDF</button><button class="btn btn-s" onclick="CG.imprimirAlt()">🖨 PDF (alt)</button><button class="btn btn-s" onclick="CG.baixarHTML()">⬇ HTML</button></div>'+
+    '</div>'+
+    '<div class="card" style="background:#f0f4ee;border:1px solid #d8e3d4;padding:12px;margin-bottom:12px;font-size:12.5px;color:#444">'+
+    '<b>Como salvar em PDF:</b> "Imprimir / PDF" → papel A4 → orientação <b>Paisagem</b> → margens <b>Nenhuma</b>.'+
+    '</div>'+
+    '<div style="background:#888;border-radius:10px;padding:10px;overflow-x:auto">'+
+    '<style>.pv{font-family:\'EB Garamond\',Georgia,serif;background:#fdfdf8;width:860px;min-height:600px;padding:26px;position:relative;box-shadow:0 4px 22px rgba(0,0,0,.18);}.pv-o{border:2px solid '+cor+';height:100%;padding:5px;}.pv-i{border:1px solid '+cor+';min-height:545px;padding:20px 42px;display:flex;flex-direction:column;position:relative;}.pv-c{position:absolute;width:32px;height:32px;border:2px solid '+cor+';opacity:.45;}.pv-c.tl{top:-2px;left:-2px;border-right:none;border-bottom:none;}.pv-c.tr{top:-2px;right:-2px;border-left:none;border-bottom:none;}.pv-c.bl{bottom:-2px;left:-2px;border-right:none;border-top:none;}.pv-c.br{bottom:-2px;right:-2px;border-left:none;border-top:none;}</style>'+
+    '<div class="pv"><div class="pv-o"><div class="pv-i">'+
+    '<div class="pv-c tl"></div><div class="pv-c tr"></div><div class="pv-c bl"></div><div class="pv-c br"></div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;">'+
+      '<div style="flex:1;text-align:center;">'+
+        '<div style="font-size:21px;color:'+cor+';letter-spacing:2.5px;font-weight:600;text-transform:uppercase;">CERTIFICADO DE TREINAMENTO</div>'+
+        '<div style="font-size:13px;letter-spacing:3px;color:#2a2a2a;font-weight:600;margin-top:4px;">'+esc(curso.norma)+'</div>'+
+        '<div style="font-size:11px;color:#444;font-style:italic;margin-top:3px;">'+esc(curso.nome)+'</div>'+
+      '</div>'+
+      (S.empresa.logo?'<img src="'+S.empresa.logo+'" style="width:50px;height:50px;object-fit:contain;border-radius:50%;margin-left:10px;flex-shrink:0;">':'')+
+    '</div>'+
+    '<div style="text-align:center;margin:13px 0 8px;">'+
+      '<div style="font-size:10px;letter-spacing:2.5px;color:#555;">OUTORGADO A</div>'+
+      '<div style="font-family:\'Pinyon Script\',\'Brush Script MT\',cursive;font-size:30px;color:'+cor+';margin-top:5px;">'+esc(al.nome)+'</div>'+
+    '</div>'+
+    '<div style="font-size:11px;line-height:1.72;color:#333;text-align:center;max-width:740px;margin:0 auto;flex:1;display:flex;align-items:center;">'+
+      '<p>Certifico para os devidos fins, que <strong>'+esc(al.nome)+'</strong>, portador do CPF <strong>'+esc(al.cpf)+'</strong>, realizou com êxito o treinamento de <strong>'+esc(curso.norma)+' '+esc(curso.nome)+'</strong>'+(TE_MAP[al.tipoEmissao]||'')+', com carga horária de <strong>'+fmtCH(curso,al)+'</strong>, realizado em <strong>'+fmtDatas(al.dataRealizacao,al.datasAdicionais)+'</strong>, em '+esc(al.local)+', satisfazendo todas as exigências da norma regulamentadora com aproveitamento de <strong>'+al.aproveitamento+'%</strong>.</p>'+
+    '</div>'+
+    '<div style="text-align:center;font-size:11px;color:#333;font-style:italic;margin:11px 0;">'+esc(al.local)+', '+fmtDatasExt(al.dataRealizacao,al.datasAdicionais)+'</div>'+
+    '<div style="display:flex;justify-content:space-around;gap:18px;margin-bottom:13px;padding-right:70px;">'+
+      assCols+
+      '<div style="text-align:center;flex:1;"><div style="height:34px;"></div><div style="border-top:1px solid #555;width:68%;margin:0 auto;"></div><div style="font-size:9px;margin:4px 0 2px;letter-spacing:.5px;color:#555;text-transform:uppercase;">Participante</div><div style="font-size:10px;font-weight:600;margin:1px 0;">'+esc(al.nome)+'</div></div>'+
+    '</div>'+
+    '<div style="border-top:1.5px solid '+cor+';padding-top:6px;padding-right:70px;">'+
+      '<div style="font-size:13px;font-weight:700;color:#1a1a1a;margin:0 0 3px;">'+esc(S.empresa.nomeEmpresa)+'</div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:9px;color:#555;">'+
+        '<span>CNPJ '+esc(S.empresa.cnpj)+'</span>'+
+        '<span>'+(sv?'VALIDADE INDETERMINADA':'VÁLIDO POR '+labelVal(vf))+'</span>'+
+        '<span>'+(sv?'':'Vigência '+calcVenc(al.dataRealizacao,vf))+'</span>'+
+      '</div>'+
+      ((art||al.certificadoId)?'<div style="display:flex;justify-content:space-between;font-size:8px;color:#888;margin-top:2px;">'+
+        '<span>'+(art?esc(art.conselho||'CREA')+' '+esc(art.registro||art.crea||'')+' — '+esc(art.responsavel||art.engenheiro||'')+' | ART/RRT nº '+esc(art.numeroArt):'')+'</span>'+
+        '<span>'+(al.certificadoId?'Cód: '+esc(al.certificadoId)+' | Verif: '+cod:'')+'</span>'+
+      '</div>':'')+
+    '</div>'+
+    '<div id="pv-qr" style="position:absolute;bottom:20px;right:42px;display:flex;flex-direction:column;align-items:center;gap:2px;">'+
+      '<div style="width:52px;height:52px;border:1px solid #ddd;display:flex;align-items:center;justify-content:center;font-size:7px;color:#bbb;">QR</div>'+
+      '<div style="font-size:7px;color:#888;">Verif: '+cod+'</div>'+
+    '</div>'+
+    '</div></div></div>'+
+    (topSel.length>0?'<div class="pv" style="margin-top:10px"><div class="pv-o"><div class="pv-i" style="display:block;">'+
+    '<div class="pv-c tl"></div><div class="pv-c tr"></div><div class="pv-c bl"></div><div class="pv-c br"></div>'+
+    '<div style="text-align:center;font-size:17px;font-weight:600;color:'+cor+';letter-spacing:2.5px;margin-bottom:4px;">CONTEÚDO PROGRAMÁTICO</div>'+
+    '<div style="text-align:center;font-size:11px;color:#555;font-style:italic;margin-bottom:16px;">'+esc(curso.norma)+' — '+esc(curso.nome)+'</div>'+
+    '<ol style="margin:0;padding-left:20px;color:#2a2a2a;font-size:'+fs+'px;line-height:'+lh+';column-count:'+cols+';column-gap:36px;">'+
+      topSel.map(function(t){return'<li style="margin-bottom:'+gap+'px;">'+esc(t.texto)+'</li>';}).join('')+
+    '</ol></div></div></div>':'')+
+    '</div>';
+  },
+
+  // ── CARTEIRINHA ──
+  pgCarteirinha:function(){
+    var al=S.cartPrev;if(!al)return'<button class="btn btn-s" onclick="CG.ir(\'alunos\')">← Voltar</button>';
+    var curso=S.cursos.find(function(c){return c.id===al.cursoId;});if(!curso)return'<button class="btn btn-s" onclick="CG.ir(\'alunos\')">← Voltar</button>';
+    var cor=S.empresa.corDestaque||'#5a6e52';
+    var vf=al.validadeAnos||curso.validadeAnos||'1';var sv=!parseInt(vf,10);
+    var cod=gerarCodVerif(al.certificadoId);
+    var st=statusVal(al.dataRealizacao,vf);
+    var corV=st==='vencido'?'#ff9999':st==='vencendo'?'#ffd77a':'#fff';
+    var venc=sv?'Sem validade':calcVenc(al.dataRealizacao,vf);
+    if(!S._cartEdit){
+      S._cartEdit={nome:al.nome,cpf:al.cpf,norma:curso.norma,cursoNome:curso.nome.length>50?curso.nome.slice(0,50)+'…':curso.nome,empresa:S.empresa.nomeEmpresa,emissao:fmtCur(al.dataRealizacao),vencimento:venc,cor:cor,foto:al.foto||null};
+    }
+    var ce=S._cartEdit;
+    setTimeout(function(){
+      gerarQR('CERTGEN|'+al.certificadoId+'|'+cod,100).then(function(url){
+        var el=document.getElementById('cart-qr');if(el&&url)el.innerHTML='<img src="'+url+'" style="width:52px;height:52px;border-radius:4px;background:#fff;padding:2px;">';
+      });
+    },100);
+    return '<div class="row-sb" style="margin-bottom:14px;flex-wrap:wrap;gap:10px">'+
+    '<div class="flex"><button class="btn btn-s btn-sm" onclick="S._cartEdit=null;CG.ir(\'alunos\')">← Voltar</button><h1 style="margin:0;font-size:17px">Carteirinha</h1></div>'+
+    '<div class="flex"><button class="btn btn-p" onclick="CG.imprimirCart()">🖨 Imprimir (4x)</button><button class="btn btn-s" onclick="CG.baixarCartHTML()">⬇ Baixar HTML</button></div>'+
+    '</div>'+
+    '<div class="card" style="background:#f0f4ee;border:1px solid #d8e3d4;padding:12px;margin-bottom:14px;font-size:12.5px;color:#444">'+
+    'Formato <b>85,6mm × 54mm</b>. Edite os campos antes de imprimir. Ao imprimir: 4 por folha A4.'+
+    '</div>'+
+    '<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">'+
+    // campos editáveis
+    '<div class="card" style="flex:1;min-width:260px;"><h2>✏️ Editar carteirinha</h2><div style="display:grid;gap:10px;">'+
+    '<div><label class="lbl">Nome do portador</label><input class="inp" value="'+esc(ce.nome)+'" oninput="S._cartEdit.nome=this.value;CG._atualizarCart()"></div>'+
+    '<div><label class="lbl">CPF</label><input class="inp" value="'+esc(ce.cpf)+'" oninput="S._cartEdit.cpf=this.value;CG._atualizarCart()"></div>'+
+    '<div><label class="lbl">Norma</label><input class="inp" value="'+esc(ce.norma)+'" oninput="S._cartEdit.norma=this.value;CG._atualizarCart()"></div>'+
+    '<div><label class="lbl">Curso (resumido)</label><input class="inp" value="'+esc(ce.cursoNome)+'" oninput="S._cartEdit.cursoNome=this.value;CG._atualizarCart()"></div>'+
+    '<div><label class="lbl">Empresa</label><input class="inp" value="'+esc(ce.empresa)+'" oninput="S._cartEdit.empresa=this.value;CG._atualizarCart()"></div>'+
+    '<div><label class="lbl">Emissão</label><input class="inp" value="'+esc(ce.emissao)+'" oninput="S._cartEdit.emissao=this.value;CG._atualizarCart()"></div>'+
+    '<div><label class="lbl">Vencimento</label><input class="inp" value="'+esc(ce.vencimento)+'" oninput="S._cartEdit.vencimento=this.value;CG._atualizarCart()"></div>'+
+    '<div><label class="lbl">Foto do portador (opcional)</label>'+
+      (ce.foto?'<img src="'+ce.foto+'" style="height:50px;border-radius:4px;display:block;margin-bottom:6px;">':'')+
+      '<input type="file" accept="image/*" onchange="CG.upFotoCart(this)" style="font-size:12px;"></div>'+
+    '<div><label class="lbl">Cor de fundo</label><input type="color" value="'+esc(ce.cor)+'" oninput="S._cartEdit.cor=this.value;CG._atualizarCart()" style="width:56px;height:36px;border:1px solid #ddd;border-radius:7px;cursor:pointer;"></div>'+
+    '<button class="btn btn-s btn-sm" onclick="S._cartEdit=null;CG.render()">↺ Restaurar original</button>'+
+    '</div></div>'+
+    // preview
+    '<div style="flex:1;min-width:340px;">'+
+    '<div style="background:#666;border-radius:10px;padding:20px;display:flex;justify-content:center;">'+
+    '<div id="cart-el" style="width:324px;height:204px;border-radius:8px;overflow:hidden;background:linear-gradient(135deg,'+ce.cor+' 0%,'+ce.cor+'cc 60%,'+ce.cor+'44 100%);position:relative;box-shadow:0 8px 28px rgba(0,0,0,.32);font-family:\'EB Garamond\',Georgia,serif;display:flex;flex-direction:column;">'+
+    '<div style="padding:11px 13px 7px;display:flex;justify-content:space-between;align-items:flex-start;">'+
+      '<div>'+(S.empresa.logo?'<img src="'+S.empresa.logo+'" style="height:22px;object-fit:contain;filter:brightness(0) invert(1);margin-bottom:3px;display:block;">':'')+
+        '<div id="ce-emp" style="font-size:7.5px;color:rgba(255,255,255,.8);letter-spacing:1.5px;text-transform:uppercase;">'+esc(ce.empresa)+'</div></div>'+
+      '<div style="text-align:right;"><div style="font-size:8px;color:rgba(255,255,255,.9);letter-spacing:1px;font-weight:600;text-transform:uppercase;">Certificado</div>'+
+        '<div id="ce-norma" style="font-size:11px;color:#fff;font-weight:600;letter-spacing:1px;">'+esc(ce.norma)+'</div></div>'+
+    '</div>'+
+    '<div style="padding:0 13px;flex:1;display:flex;gap:8px;align-items:flex-start;">'+
+      '<div style="flex:1;">'+
+        '<div style="font-size:7px;color:rgba(255,255,255,.7);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px;">PORTADOR</div>'+
+        '<div id="ce-nome" style="font-size:13px;color:#fff;font-weight:600;line-height:1.2;margin-bottom:3px;">'+esc(ce.nome)+'</div>'+
+        '<div id="ce-cpf" style="font-size:7.5px;color:rgba(255,255,255,.8);">CPF: '+esc(ce.cpf)+'</div>'+
+        '<div id="ce-curso" style="font-size:7px;color:rgba(255,255,255,.8);margin-top:2px;line-height:1.3;">'+esc(ce.cursoNome)+'</div>'+
+      '</div>'+
+      '<div id="cart-foto" style="width:46px;height:54px;border-radius:4px;background:rgba(255,255,255,.15);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:7px;color:rgba(255,255,255,.5);">'+
+        (ce.foto?'<img src="'+ce.foto+'" style="width:100%;height:100%;object-fit:cover;border-radius:4px;">':' foto')+
+      '</div>'+
+    '</div>'+
+    '<div style="background:rgba(0,0,0,.24);padding:7px 13px;display:flex;justify-content:space-between;align-items:center;">'+
+      '<div>'+
+        '<div style="font-size:7px;color:rgba(255,255,255,.7);text-transform:uppercase;">Emissão</div>'+
+        '<div id="ce-emis" style="font-size:9px;color:#fff;font-weight:600;">'+esc(ce.emissao)+'</div>'+
+        '<div style="font-size:7px;color:rgba(255,255,255,.7);text-transform:uppercase;margin-top:2px;">Vencimento</div>'+
+        '<div id="ce-venc" style="font-size:9px;color:'+corV+';font-weight:600;">'+esc(ce.vencimento)+'</div>'+
+        '<div style="font-size:7px;color:rgba(255,255,255,.7);margin-top:2px;">Verif: <span style="color:#fff;font-family:monospace;font-weight:600;">'+cod+'</span></div>'+
+      '</div>'+
+      '<div id="cart-qr" style="width:52px;height:52px;border-radius:4px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:7px;color:rgba(255,255,255,.6);">QR</div>'+
+    '</div>'+
+    '</div></div></div>'+
+    '</div>';
+  },
+  _atualizarCart:function(){
+    var ce=S._cartEdit;if(!ce)return;
+    function set(id,val){var el=document.getElementById(id);if(el)el.textContent=val;}
+    set('ce-nome',ce.nome);set('ce-cpf','CPF: '+ce.cpf);set('ce-norma',ce.norma);
+    set('ce-curso',ce.cursoNome);set('ce-emp',ce.empresa);
+    set('ce-emis',ce.emissao);set('ce-venc',ce.vencimento);
+    var cart=document.getElementById('cart-el');
+    if(cart)cart.style.background='linear-gradient(135deg,'+ce.cor+' 0%,'+ce.cor+'cc 60%,'+ce.cor+'44 100%)';
+  },
+  upFotoCart:function(inp){
+    var f=inp.files[0];if(!f)return;
+    var r=new FileReader();
+    r.onload=function(e){
+      if(S._cartEdit)S._cartEdit.foto=e.target.result;
+      var el=document.getElementById('cart-foto');
+      if(el)el.innerHTML='<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover;border-radius:4px;">';
+    };
+    r.readAsDataURL(f);
+  },
+  imprimirCart:function(){
+    var el=document.getElementById('cart-el');if(!el)return;
+    var html=el.outerHTML;
+    var doc='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>*{box-sizing:border-box;margin:0;padding:0;}body{padding:10mm;}@page{size:A4;margin:10mm;}.grid{display:flex;flex-wrap:wrap;gap:8px;}</style></head><body><div class="grid">'+Array(4).join(html+html)+'</div></body></html>';
+    var w=window.open('','_blank');if(!w)return;w.document.write(doc);w.document.close();setTimeout(function(){w.print();},600);
+  },
+  baixarCartHTML:function(){
+    var el=document.getElementById('cart-el');if(!el)return;
+    var doc='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>*{box-sizing:border-box;}body{background:#666;display:flex;align-items:center;justify-content:center;min-height:100vh;}</style></head><body>'+el.outerHTML+'</body></html>';
+    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([doc],{type:'text/html'}));a.download='carteirinha_'+(S.cartPrev?S.cartPrev.nome.replace(/\s+/g,'_'):'cert')+'.html';a.click();
+  },
+
+  // ── VERIFICAR ──
+  pgVerificar:function(){
+    var al=S.verifRes;
+    var curso=al?S.cursos.find(function(c){return c.id===al.cursoId;}):null;
+    var vf=al?(al.validadeAnos||(curso?curso.validadeAnos:'1')):'1';
+    var st=al?statusVal(al.dataRealizacao,vf):'';
+    var stM={vencido:{e:'❌',c:'#c0392b',bg:'#fff0f0',l:'⛔ VENCIDO'},vencendo:{e:'⚠️',c:'#b7791f',bg:'#fff8e8',l:'⚠️ Vencendo'},valido:{e:'✅',c:'#2a7a2a',bg:'#f0fff4',l:'✅ Certificado VÁLIDO'},indeterminado:{e:'✅',c:'#2a7a2a',bg:'#f0fff4',l:'✅ Válido (sem prazo)'}};
+    var s=stM[st]||stM.indeterminado;
+    return '<h1 style="margin-bottom:4px">Verificar Certificado</h1>'+
+    '<p style="font-size:13px;color:#777;margin-bottom:18px">Digite o código de verificação (6 caracteres) ou o código completo.</p>'+
+    '<div class="card" style="max-width:520px;margin-bottom:14px">'+
+    '<label class="lbl">Código de verificação ou código do certificado</label>'+
+    '<div class="flex" style="margin-top:8px;">'+
+    '<input class="inp" id="vf-cod" value="'+esc(S.verifCod)+'" placeholder="ex: AB3X7K" style="font-family:monospace;font-size:16px;letter-spacing:2px;flex:1;" onkeydown="if(event.key===\'Enter\')CG.fazerVerif()">'+
+    '<button class="btn btn-p" onclick="CG.fazerVerif()">🔍 Verificar</button>'+
+    '</div></div>'+
+    (S.verifBuscado&&!al?'<div class="card" style="background:#fff0f0;border:1px solid #feb2b2;max-width:520px;"><div class="flex"><span style="font-size:26px;">❌</span><div><div style="font-weight:700;color:#c0392b;">Certificado não encontrado</div><div style="font-size:12.5px;color:#888;margin-top:3px;">Verifique o código. O código de verificação possui 6 caracteres.</div></div></div></div>':'')+
+    (al?'<div class="card" style="background:'+s.bg+';border:1px solid '+s.c+'44;max-width:520px;">'+
+    '<div class="flex" style="margin-bottom:12px;"><span style="font-size:30px;">'+s.e+'</span>'+
+    '<div><div style="font-weight:700;font-size:16px;color:'+s.c+';">'+s.l+'</div>'+
+    '<div style="font-size:12px;color:#666;margin-top:2px;">Verificado em '+new Date().toLocaleDateString('pt-BR')+'</div></div></div>'+
+    '<div class="g2" style="gap:10px;font-size:13px;">'+
+    '<div><div style="font-size:11px;color:#888;">TITULAR</div><div style="font-weight:700;font-size:15px;margin-top:2px;">'+esc(al.nome)+'</div></div>'+
+    '<div><div style="font-size:11px;color:#888;">CPF</div><div style="font-weight:600;font-family:monospace;margin-top:2px;">'+esc(al.cpf)+'</div></div>'+
+    '<div><div style="font-size:11px;color:#888;">TREINAMENTO</div><div style="font-weight:600;margin-top:2px;">'+(curso?esc(curso.norma):'—')+'</div><div style="font-size:11px;color:#666;">'+(curso?esc(curso.nome):'—')+'</div></div>'+
+    '<div><div style="font-size:11px;color:#888;">CARGA HORÁRIA</div><div style="font-weight:600;margin-top:2px;">'+(curso?esc(curso.cargaHoraria):'—')+'h</div></div>'+
+    '<div><div style="font-size:11px;color:#888;">EMISSÃO</div><div style="font-weight:600;margin-top:2px;">'+fmtDatas(al.dataRealizacao,al.datasAdicionais)+'</div></div>'+
+    '<div><div style="font-size:11px;color:#888;">VENCIMENTO</div><div style="font-weight:600;margin-top:2px;color:'+s.c+';">'+(calcVenc(al.dataRealizacao,vf)||'Sem validade')+'</div></div>'+
+    '<div><div style="font-size:11px;color:#888;">LOCAL</div><div style="font-weight:600;margin-top:2px;">'+esc(al.local)+'</div></div>'+
+    '<div><div style="font-size:11px;color:#888;">APROVEITAMENTO</div><div style="font-weight:600;margin-top:2px;">'+al.aproveitamento+'%</div></div>'+
+    '</div>'+
+    '<div style="border-top:1px solid '+s.c+'44;padding-top:8px;margin-top:10px;font-size:12px;">'+
+    '<div><span style="color:#888;">EMISSOR:</span> <b>'+esc(S.empresa.nomeEmpresa)+'</b></div>'+
+    '<div style="margin-top:4px;"><span style="color:#888;">CÓDIGO:</span> <b style="font-family:monospace;font-size:11px;">'+esc(al.certificadoId)+'</b></div>'+
+    '</div></div>':'');
+  },
+  fazerVerif:function(){
+    var el=document.getElementById('vf-cod');if(!el)return;
+    var cod=el.value.trim().toUpperCase();S.verifCod=cod;
+    S.verifRes=S.alunos.find(function(a){return gerarCodVerif(a.certificadoId)===cod||(a.certificadoId||'').toUpperCase()===cod;})||null;
+    S.verifBuscado=true;CG.render();
+  },
+
+  // ── LICENÇAS (master) ──
+  pgLicencas:function(){
+    if(!AUTH.licenca||AUTH.licenca.plano!=='master')return'<div class="card"><p style="color:#999">Acesso restrito.</p></div>';
+    if(!window._lics){
+      window._lics=[];
+      sbFetch('licencas?select=*&order=criado_em.desc').then(function(rows){window._lics=rows||[];CG.render();}).catch(function(){});
+      return'<h1>Licenças</h1><div class="card"><p style="color:#999">Carregando...</p></div>';
+    }
+    return'<div class="row-sb" style="margin-bottom:14px;"><h1 style="margin:0;">Licenças ('+window._lics.length+')</h1>'+
+    '<div class="flex"><button class="btn btn-s btn-sm" onclick="window._lics=null;CG.render()">🔄 Atualizar</button>'+
+    '<button class="btn btn-p btn-sm" onclick="CG.novaLicenca()">+ Nova licença</button></div></div>'+
+    window._lics.map(function(l){
+      return'<div class="card" style="padding:14px;margin-bottom:10px;border-left:3px solid '+(l.ativo?'#9ae6b4':'#feb2b2')+';">'+
+      '<div class="row-sb"><div>'+
+      '<div style="font-weight:700;font-size:14px;">'+esc(l.nome_cliente)+'</div>'+
+      '<div style="font-size:12px;color:#888;margin-top:2px;">'+esc(l.email||'')+'</div>'+
+      '<div style="font-family:monospace;font-size:13px;color:#5a6e52;margin-top:4px;font-weight:600;">'+esc(l.codigo)+'</div>'+
+      '<div style="font-size:12px;color:#888;margin-top:2px;">Plano: '+esc(l.plano)+' | '+(l.validade?'Válido até: '+new Date(l.validade).toLocaleDateString('pt-BR'):'Sem validade')+(l.ultimo_acesso?' | Último acesso: '+new Date(l.ultimo_acesso).toLocaleDateString('pt-BR'):'')+' </div>'+
+      '</div><div class="flex">'+
+      '<button class="btn '+(l.ativo?'btn-d':'btn-p')+' btn-sm" onclick="CG.toggleLicenca(\''+l.id+'\','+l.ativo+')">'+(l.ativo?'🔒 Desativar':'🔓 Ativar')+'</button>'+
+      '</div></div></div>';
+    }).join('');
+  },
+  novaLicenca:function(){
+    var nome=prompt('Nome do cliente:');if(!nome)return;
+    var email=prompt('Email (opcional):');
+    var plano=prompt('Plano (basico/pro/master):','basico');
+    var validade=prompt('Data de validade (AAAA-MM-DD, ou vazio):');
+    var codigo=nome.split(' ')[0].toUpperCase()+'-'+Math.random().toString(36).slice(2,6).toUpperCase()+'-'+new Date().getFullYear();
+    sbFetch('licencas',{method:'POST',prefer:'return=minimal',body:JSON.stringify({codigo:codigo,nome_cliente:nome,email:email||null,ativo:true,validade:validade||null,plano:plano||'basico'})})
+    .then(function(){alert('Licença criada!\nCódigo: '+codigo);window._lics=null;CG.render();})
+    .catch(function(e){alert('Erro: '+e.message);});
+  },
+  toggleLicenca:function(id,ativo){
+    if(!confirm(ativo?'Desativar esta licença?':'Reativar esta licença?'))return;
+    sbFetch('licencas?id=eq.'+id,{method:'PATCH',prefer:'return=minimal',body:JSON.stringify({ativo:!ativo})})
+    .then(function(){window._lics=null;CG.render();toast(ativo?'Licença desativada!':'Licença reativada!');})
+    .catch(function(e){toast('Erro: '+e.message);});
+  },
+
+  // ── GERAR HTML CERT ──
+  _gerarHTMLCert:function(al,qr){
+    qr=qr||'';
+    var curso=S.cursos.find(function(c){return c.id===al.cursoId;});if(!curso)return'';
+    var cor=S.empresa.corDestaque||'#5a6e52';
+    var topSel=curso.topicos.filter(function(t){return al.topicosSelecionados.indexOf(t.id)>=0;});
+    var vf=al.validadeAnos||curso.validadeAnos||'1';var sv=!parseInt(vf,10);
+    var art=S.arts.find(function(a){return a.id===al.artId;});
+    var instSel=(al.instrutoresIds||[]).map(function(id){return S.instrutores.find(function(i){return i.id===id;});}).filter(Boolean);
+    var cod=gerarCodVerif(al.certificadoId);
+    var TIPL2={principal:'Instrutor Principal',auxiliar:'Instrutor Auxiliar',engenheiro:'Engenheiro Responsável',coordenador:'Coordenador Técnico'};
+    var n=topSel.length;var fs=13,lh=2,gap=12,cols=1;
+    if(n>10&&n<=16){fs=11;lh=1.65;gap=9;}else if(n>16&&n<=24){fs=10;lh=1.5;gap=7;cols=2;}else if(n>24){fs=9.5;lh=1.4;gap=5;cols=2;}
+    function colAss2(nome,cargo,registro,ass){
+      return'<div style="text-align:center;flex:1;">'+
+        (ass?'<div style="height:40px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:4px;"><img style="max-height:40px;max-width:140px;object-fit:contain;" src="'+ass+'" alt=""></div>':'<div style="height:40px;"></div>')+
+        '<div style="border-top:1px solid #555;width:75%;margin:0 auto;"></div>'+
+        '<p style="font-size:9px;margin:4px 0 2px;letter-spacing:.5px;color:#555;text-transform:uppercase;">Instrutor / Técnico Responsável</p>'+
+        '<p style="font-size:11.5px;font-weight:600;margin:2px 0;color:#1a1a1a;">'+esc(nome)+'</p>'+
+        '<p style="font-size:9px;margin:0;color:#666;">'+esc(cargo)+'</p>'+
+        (registro?'<p style="font-size:9px;margin:0;color:#666;">'+esc(registro)+'</p>':'')+
+      '</div>';
+    }
+    var assC=instSel.length>0
+      ?instSel.map(function(i){return colAss2(i.nome,TIPL2[i.tipo]||i.cargo||'',i.registro,i.assinatura);}).join('')
+      :colAss2(S.empresa.nomeInstrutor,S.empresa.cargoInstrutor,S.empresa.registro,S.empresa.assinatura);
+    var qrEl=qr
+      ?'<div style="position:absolute;bottom:38px;right:52px;display:flex;flex-direction:column;align-items:center;gap:2px;z-index:2;"><img src="'+qr+'" style="width:50px;height:50px;border:2px solid #fff;border-radius:4px;background:#fff;"><span style="font-size:6.5px;color:#777;letter-spacing:.3px;">Verif: '+cod+'</span></div>'
+      :'<div style="position:absolute;bottom:38px;right:52px;display:flex;flex-direction:column;align-items:center;gap:2px;z-index:2;"><div style="width:50px;height:50px;border:1px solid #ccc;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:6.5px;color:#bbb;text-align:center;background:#fafafa;">QR<br>CODE</div><span style="font-size:6.5px;color:#bbb;">Verif: '+cod+'</span></div>';
+    var gf='https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600&family=Pinyon+Script&display=swap';
+    var CSS='*{box-sizing:border-box;margin:0;padding:0;}html,body{margin:0;padding:0;background:#e8e8e2;}.cp{width:1122px;height:794px;background:#fdfdf8;position:relative;padding:38px;overflow:hidden;font-family:\'EB Garamond\',Georgia,serif;}.cbo{border:2.5px solid var(--cor);height:100%;padding:7px;}.cbi{border:1px solid var(--cor);height:100%;padding:28px 56px;position:relative;display:flex;flex-direction:column;}.cbi2{padding:40px 70px;display:block;}.cc{position:absolute;width:42px;height:42px;border:2.5px solid var(--cor);opacity:.45;}.cc.tl{top:-2.5px;left:-2.5px;border-right:none;border-bottom:none;}.cc.tr{top:-2.5px;right:-2.5px;border-left:none;border-bottom:none;}.cc.bl{bottom:-2.5px;left:-2.5px;border-right:none;border-top:none;}.cc.br{bottom:-2.5px;right:-2.5px;border-left:none;border-top:none;}@page{size:A4 landscape;margin:0;}@media print{html,body{background:#fff!important;}.cp{width:297mm!important;height:210mm!important;padding:10mm!important;box-shadow:none!important;}}';
+    var artTexto=art?(esc(art.conselho||'CREA')+' '+esc(art.registro||art.crea||'')+' — '+esc(art.responsavel||art.engenheiro||'')+' | ART/RRT nº '+esc(art.numeroArt)):'';
+    var p1='<div class="cp" style="--cor:'+cor+'"><div class="cbo"><div class="cbi">'+
+    '<div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;">'+
+      '<div style="flex:1;text-align:center;"><h1 style="font-size:26px;color:'+cor+';letter-spacing:3px;margin:0 0 4px;font-weight:600;text-transform:uppercase;">CERTIFICADO DE TREINAMENTO</h1>'+
+      '<h2 style="font-size:14px;letter-spacing:4px;margin:0 0 8px;color:#2a2a2a;font-weight:600;">'+esc(curso.norma)+'</h2>'+
+      '<p style="font-weight:600;font-size:12px;margin:0;color:#444;font-style:italic;">'+esc(curso.nome)+'</p></div>'+
+      (S.empresa.logo?'<img style="width:60px;height:60px;object-fit:contain;border-radius:50%;margin-left:10px;flex-shrink:0;" src="'+S.empresa.logo+'" alt="logo">':'')+
+    '</div>'+
+    '<div style="text-align:center;margin:16px 0 10px;"><p style="font-size:11px;letter-spacing:3px;margin:0 0 6px;color:#555;font-weight:600;">OUTORGADO A</p>'+
+    '<p style="font-family:\'Pinyon Script\',\'Brush Script MT\',cursive;font-size:36px;color:'+cor+';margin:0;line-height:1.1;">'+esc(al.nome)+'</p></div>'+
+    '<div style="flex:1;display:flex;align-items:center;"><p style="text-align:center;font-size:12px;line-height:1.75;color:#333;margin:0 auto;max-width:820px;">Certifico para os devidos fins, que <strong>'+esc(al.nome)+'</strong>, portador do CPF <strong>'+esc(al.cpf)+'</strong>, realizou com êxito o treinamento de <strong>'+esc(curso.norma)+' '+esc(curso.nome)+'</strong>'+(TE_MAP[al.tipoEmissao]||'')+', com carga horária de <strong>'+fmtCH(curso,al)+'</strong>, realizado em <strong>'+fmtDatas(al.dataRealizacao,al.datasAdicionais)+'</strong>, em '+esc(al.local)+', satisfazendo todas as exigências da norma regulamentadora com aproveitamento de <strong>'+al.aproveitamento+'%</strong>.</p></div>'+
+    '<p style="text-align:center;font-size:12px;margin:0 0 16px;color:#333;font-style:italic;">'+esc(al.local)+', '+fmtDatasExt(al.dataRealizacao,al.datasAdicionais)+'</p>'+
+    '<div style="display:flex;justify-content:space-around;margin-bottom:16px;gap:30px;padding-right:60px;">'+assC+
+    '<div style="text-align:center;flex:1;"><div style="height:40px;"></div><div style="border-top:1px solid #555;width:75%;margin:0 auto;"></div><p style="font-size:9px;margin:4px 0 2px;letter-spacing:.5px;color:#555;text-transform:uppercase;">Participante</p><p style="font-size:11.5px;font-weight:600;margin:2px 0;color:#1a1a1a;">'+esc(al.nome)+'</p></div>'+
+    '</div>'+
+    '<div style="border-top:1.5px solid '+cor+';padding-top:8px;padding-right:60px;">'+
+      '<p style="font-size:16px;font-weight:700;margin:0 0 4px;color:#1a1a1a;letter-spacing:.5px;">'+esc(S.empresa.nomeEmpresa)+'</p>'+
+      '<div style="display:flex;justify-content:space-between;font-size:9px;color:#555;letter-spacing:.3px;">'+
+        '<span>CNPJ '+esc(S.empresa.cnpj)+'</span>'+
+        '<span>'+(sv?'VALIDADE INDETERMINADA':'VÁLIDO POR '+labelVal(vf))+'</span>'+
+        '<span>'+(sv?'':'Vigência '+calcVenc(al.dataRealizacao,vf))+'</span>'+
+      '</div>'+
+      ((artTexto||al.certificadoId)?'<div style="display:flex;justify-content:space-between;font-size:8px;color:#888;letter-spacing:.2px;margin-top:3px;">'+
+        '<span>'+artTexto+'</span>'+
+        '<span>'+(al.certificadoId?'Cód: '+esc(al.certificadoId)+' | Verif: '+cod:'')+'</span>'+
+      '</div>':'')+
+    '</div>'+qrEl+
+    '</div></div></div>';
+    var p2=topSel.length>0?'<div class="cp" style="--cor:'+cor+'"><div class="cbo"><div class="cbi cbi2">'+
+    '<div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>'+
+    '<h3 style="text-align:center;color:'+cor+';letter-spacing:3px;margin:0 0 6px;font-size:20px;font-weight:600;font-family:\'EB Garamond\',Georgia,serif;">CONTEÚDO PROGRAMÁTICO</h3>'+
+    '<p style="text-align:center;font-size:11px;color:#555;font-style:italic;margin:0 0 20px;font-family:\'EB Garamond\',Georgia,serif;">'+esc(curso.norma)+' — '+esc(curso.nome)+'</p>'+
+    '<ol style="margin:0;padding-left:20px;column-gap:40px;font-family:\'EB Garamond\',Georgia,serif;font-size:'+fs+'px;line-height:'+lh+';column-count:'+cols+';">'+
+      topSel.map(function(t){return'<li style="margin-bottom:'+gap+'px;">'+esc(t.texto)+'</li>';}).join('')+
+    '</ol></div></div></div>':'';
+    return'<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Certificado — '+esc(al.nome)+'</title><link href="'+gf+'" rel="stylesheet"><style>'+CSS+'</style></head><body><div style="page-break-after:always;">'+p1+'</div>'+(p2?'<div>'+p2+'</div>':'')+'</body></html>';
+  },
+
+  // ── IMPRESSÃO / EXPORTAÇÃO ──
+  imprimirPDF:function(){
+    var al=S.certPrev;if(!al)return;
+    gerarQR('CERTGEN|'+al.certificadoId+'|'+gerarCodVerif(al.certificadoId),120).then(function(qr){
+      var w=window.open('','_blank');if(!w){toast('Pop-up bloqueado. Use PDF (alt).');return;}
+      w.document.write(CG._gerarHTMLCert(al,qr));w.document.close();setTimeout(function(){w.print();},900);
+    });
+  },
+  imprimirAlt:function(){
+    var al=S.certPrev;if(!al)return;
+    gerarQR('CERTGEN|'+al.certificadoId+'|'+gerarCodVerif(al.certificadoId),120).then(function(qr){
+      var html=CG._gerarHTMLCert(al,qr);
+      var f=document.getElementById('_pf');if(f)f.remove();
+      f=document.createElement('iframe');f.id='_pf';
+      Object.assign(f.style,{position:'fixed',right:'0',bottom:'0',width:'0',height:'0',border:'0'});
+      document.body.appendChild(f);
+      f.contentWindow.document.open();f.contentWindow.document.write(html);f.contentWindow.document.close();
+      f.onload=function(){setTimeout(function(){try{f.contentWindow.focus();f.contentWindow.print();}catch(e){toast('Erro ao imprimir.');}},600);};
+    });
+  },
+  baixarHTML:function(){
+    var al=S.certPrev;if(!al)return;
+    gerarQR('CERTGEN|'+al.certificadoId+'|'+gerarCodVerif(al.certificadoId),120).then(function(qr){
+      var a=document.createElement('a');
+      a.href=URL.createObjectURL(new Blob([CG._gerarHTMLCert(al,qr)],{type:'text/html'}));
+      a.download='certificado_'+al.nome.replace(/\s+/g,'_')+'.html';a.click();
+    });
+  },
+  lotePDF:function(){
+    if(!S.alunos.length){toast('Nenhum certificado.');return;}
+    toast('Gerando lote...');
+    var gf='https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600&family=Pinyon+Script&display=swap';
+    var i=0;var partes=[];
+    function proxima(){
+      if(i>=S.alunos.length){
+        var w=window.open('','_blank');if(!w){toast('Pop-up bloqueado.');return;}
+        w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><link href="'+gf+'" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0;}html,body{background:#fff;}</style></head><body>'+partes.join('')+'</body></html>');
+        w.document.close();setTimeout(function(){w.print();},900);
+        return;
+      }
+      var al=S.alunos[i];
+      gerarQR('CERTGEN|'+al.certificadoId+'|'+gerarCodVerif(al.certificadoId),120).then(function(qr){
+        var h=CG._gerarHTMLCert(al,qr);
+        var b=h.substring(h.indexOf('<body>')+6,h.indexOf('</body>'));
+        partes.push(i>0?'<div style="page-break-before:always;"></div>'+b:b);
+        i++;proxima();
+      });
+    }
+    proxima();
+  },
+  expWord:function(){
+    var lista=S.alunos;if(!lista.length){toast('Nenhum aluno.');return;}
+    var rows=lista.map(function(a){
+      var c=S.cursos.find(function(x){return x.id===a.cursoId;});var vf=a.validadeAnos||(c?c.validadeAnos:'1');
+      var st=statusVal(a.dataRealizacao,vf);var tc=st==='vencido'?'#c0392b':st==='vencendo'?'#b7791f':'#1a1a1a';
+      var ar=S.arts.find(function(x){return x.id===a.artId;});
+      return'<tr><td>'+esc(a.certificadoId||'')+'</td><td>'+esc(a.nome)+'</td><td>'+esc(a.cpf)+'</td><td>'+(c?esc(c.norma):'')+'</td><td>'+fmtDatas(a.dataRealizacao,a.datasAdicionais)+'</td><td>'+calcVenc(a.dataRealizacao,vf)+'</td><td style="color:'+tc+';font-weight:bold;">'+(st==='vencido'?'VENCIDO':st==='vencendo'?'VENCENDO':'')+'</td><td>'+esc(a.local)+'</td><td>'+a.aproveitamento+'%</td><td>'+(ar?esc(ar.numeroArt):'')+'</td><td>'+gerarCodVerif(a.certificadoId)+'</td></tr>';
+    }).join('');
+    var doc='<html xmlns:o=\'urn:schemas-microsoft-com:office:office\' xmlns:w=\'urn:schemas-microsoft-com:office:word\' xmlns=\'http://www.w3.org/TR/REC-html40\'><head><meta charset="UTF-8"><style>body{font-family:Calibri,sans-serif;}table{border-collapse:collapse;width:100%;font-size:9pt;}th{background:#2d3a28;color:#fff;padding:6px;}td{border:1px solid #ccc;padding:6px;}</style></head><body><h1>'+esc(S.empresa.nomeEmpresa)+'</h1><p>'+new Date().toLocaleDateString('pt-BR')+'</p><table><thead><tr><th>Código</th><th>Nome</th><th>CPF</th><th>Norma</th><th>Data(s)</th><th>Vencimento</th><th>Status</th><th>Local</th><th>Aprov.</th><th>ART</th><th>Cód.Verif</th></tr></thead><tbody>'+rows+'</tbody></table></body></html>';
+    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff',doc],{type:'application/msword'}));a.download='lista_certificados_'+new Date().toISOString().slice(0,10)+'.doc';a.click();toast('Lista exportada!');
+  },
+  expCSV:function(){
+    var lista=S.alunos;if(!lista.length){toast('Nenhum aluno.');return;}
+    var rows=[['Código','Nome','CPF','Curso','Norma','Data(s)','Vencimento','Status','Local','Aproveitamento','Cód.Verif']].concat(lista.map(function(a){
+      var c=S.cursos.find(function(x){return x.id===a.cursoId;});var vf=a.validadeAnos||(c?c.validadeAnos:'1');var st=statusVal(a.dataRealizacao,vf);
+      return[a.certificadoId||'',a.nome,a.cpf,c?c.nome:'',c?c.norma:'',fmtDatas(a.dataRealizacao,a.datasAdicionais),calcVenc(a.dataRealizacao,vf),st,a.local,a.aproveitamento+'%',gerarCodVerif(a.certificadoId)];
+    }));
+    var csv=rows.map(function(l){return l.map(function(v){return'"'+String(v).replace(/"/g,'""')+'"';}).join(';');}).join('\n');
+    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='certificados_'+new Date().toISOString().slice(0,10)+'.csv';a.click();toast('CSV exportado!');
+  },
+  expPresenca:function(){
+    var lista=S.alunos;if(!lista.length){toast('Nenhum aluno.');return;}
+    var cursosU=[];lista.forEach(function(a){if(cursosU.indexOf(a.cursoId)<0)cursosU.push(a.cursoId);});
+    if(cursosU.length>1&&!confirm(cursosU.length+' cursos diferentes. Continuar?'))return;
+    var curso=S.cursos.find(function(c){return c.id===lista[0].cursoId;});var art=S.arts.find(function(a){return a.id===lista[0].artId;});
+    var linhas=lista.map(function(a,i){return'<tr><td style="text-align:center;">'+(i+1)+'</td><td>'+esc(a.nome)+'</td><td>'+esc(a.cpf)+'</td><td>'+fmtDatas(a.dataRealizacao,a.datasAdicionais)+'</td><td style="width:180px;">&nbsp;</td></tr>';}).join('');
+    var doc='<html xmlns:o=\'urn:schemas-microsoft-com:office:office\' xmlns:w=\'urn:schemas-microsoft-com:office:word\' xmlns=\'http://www.w3.org/TR/REC-html40\'><head><meta charset="UTF-8"><style>body{font-family:Calibri,Arial,sans-serif;margin:30px;}h2{color:#2d3a28;font-size:14pt;}h3{color:#2d3a28;font-size:12pt;}p{font-size:10pt;margin:2px 0;}table{border-collapse:collapse;width:100%;font-size:10pt;margin-top:16px;}th{background:#2d3a28;color:#fff;padding:8px 10px;text-align:left;}td{border:1px solid #ccc;padding:8px 10px;}tr:nth-child(even){background:#f9f9f9;}.rodape{margin-top:40px;display:flex;justify-content:space-between;}.ass{text-align:center;width:220px;}.ass-linha{border-top:1px solid #333;margin-bottom:4px;}.ass-nome{font-size:9pt;color:#555;}</style></head><body>'+
+    '<h2>'+esc(S.empresa.nomeEmpresa)+'</h2><h3>LISTA DE PRESENÇA — '+(curso?esc(curso.norma+' – '+curso.nome):'Treinamento')+'</h3>'+
+    '<p><strong>Data(s):</strong> '+fmtDatas(lista[0].dataRealizacao,lista[0].datasAdicionais)+' &nbsp; <strong>Local:</strong> '+esc(lista[0].local)+' &nbsp; <strong>C.H.:</strong> '+(curso?esc(curso.cargaHoraria):'—')+'h</p>'+
+    (art?'<p><strong>ART/RRT nº:</strong> '+esc(art.numeroArt)+' — '+esc(art.responsavel||art.engenheiro||'')+' ('+esc(art.conselho||'CREA')+' '+esc(art.registro||art.crea||'')+')</p>':'')+
+    '<table><thead><tr><th style="width:40px;">Nº</th><th>Nome Completo</th><th style="width:130px;">CPF</th><th style="width:80px;">Data</th><th style="width:180px;">Assinatura</th></tr></thead><tbody>'+linhas+'</tbody></table>'+
+    '<div class="rodape"><div class="ass"><div class="ass-linha"></div><p class="ass-nome">Instrutor / Técnico Responsável</p><p class="ass-nome">'+esc(S.empresa.nomeInstrutor||'_________________')+'</p><p class="ass-nome">'+esc(S.empresa.cargoInstrutor)+' — '+esc(S.empresa.registro)+'</p></div>'+
+    '<div class="ass"><div class="ass-linha"></div><p class="ass-nome">'+esc(S.empresa.nomeEmpresa)+'</p><p class="ass-nome">CNPJ '+esc(S.empresa.cnpj)+'</p></div></div>'+
+    '</body></html>';
+    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff',doc],{type:'application/msword'}));a.download='lista_presenca_'+new Date().toISOString().slice(0,10)+'.doc';a.click();toast('Lista exportada!');
+  },
+  baixarModelo:function(){
+    var csv=[['Nome','CPF','Data','Local','Aproveitamento'],['João da Silva','123.456.789-00','15/06/2026','Curitiba','100']].map(function(l){return l.join(';');}).join('\n');
+    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='modelo_importacao.csv';a.click();toast('Modelo baixado!');
+  },
+  baixarBackup:function(){
+    var bk={empresa:S.empresa,cursos:S.cursos,alunos:S.alunos,arts:S.arts,instrutores:S.instrutores,regs:S.regs,turmas:S.turmas,seq:S.seq,dataBackup:new Date().toISOString(),versao:VERSAO};
+    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(bk,null,2)],{type:'application/json'}));a.download='backup_certgen_'+new Date().toISOString().slice(0,10)+'.json';a.click();toast('Backup baixado!');
+  },
+  restaurarBk:function(inp){
+    var f=inp.files[0];if(!f)return;var r=new FileReader();
+    r.onload=function(e){
+      try{var d=JSON.parse(e.target.result);
+        ['empresa','cursos','alunos','arts','instrutores','regs','turmas','seq'].forEach(function(k){if(d[k])S[k]=d[k];});
+        if(d.registrosHoras)S.regs=d.registrosHoras;
+        salvar();toast('Backup restaurado!');CG.render();
+      }catch(ex){toast('Erro ao ler backup.');}
+    };r.readAsText(f);
+  }
+};
+
+var _deferredPrompt=null;
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();_deferredPrompt=e;
+  var btn=document.getElementById('pwa-install-btn');if(btn)btn.style.display='flex';
+});
+window.addEventListener('appinstalled',function(){
+  _deferredPrompt=null;var btn=document.getElementById('pwa-install-btn');if(btn)btn.style.display='none';toast('✅ App instalado!');
+});
+
+// ── INICIALIZAÇÃO ─────────────────────────────────
+window.CG=CG;
+window.AUTH=AUTH;
+window.SYNC=SYNC;
+window.S=S;
+window.salvar=salvar;
+window.toast=toast;
+window.instalarPWA=function(){
+  if(!_deferredPrompt){alert('Para instalar no iPhone/iPad:\n1. Toque em Compartilhar\n2. Toque em "Adicionar à Tela de Início"');return;}
+  _deferredPrompt.prompt();_deferredPrompt.userChoice.then(function(){_deferredPrompt=null;var btn=document.getElementById('pwa-install-btn');if(btn)btn.style.display='none';});
+};
+window.addEventListener('resize',function(){CG.render();});
+AUTH.checarLicencaSalva().then(function(ok){
+  if(ok){AUTH.iniciarApp();}
+});
+})();
+</script>
+</body>
+</html>
